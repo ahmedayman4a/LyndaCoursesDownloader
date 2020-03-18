@@ -1,0 +1,54 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.29521.150
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LyndaCoursesDownloader.CourseContent", "LyndaCoursesDownloader.CourseContent\LyndaCoursesDownloader.CourseContent.csproj", "{FDD9E97F-D691-41B4-BE25-158965F9E657}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LyndaCoursesDownloader.CourseElements", "LyndaCoursesDownloader.CourseElements\LyndaCoursesDownloader.CourseElements.csproj", "{6022209C-A2B4-4CCA-B764-3F89E2A87B70}"
+	ProjectSection(ProjectDependencies) = postProject
+		{FDD9E97F-D691-41B4-BE25-158965F9E657} = {FDD9E97F-D691-41B4-BE25-158965F9E657}
+	EndProjectSection
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LyndaCoursesDownloader.CourseExtractor", "LyndaCoursesDownloader.CourseExtractor\LyndaCoursesDownloader.CourseExtractor.csproj", "{2474A7E5-7D88-4D78-8A82-CC28C2FBBA9B}"
+	ProjectSection(ProjectDependencies) = postProject
+		{FDD9E97F-D691-41B4-BE25-158965F9E657} = {FDD9E97F-D691-41B4-BE25-158965F9E657}
+		{6022209C-A2B4-4CCA-B764-3F89E2A87B70} = {6022209C-A2B4-4CCA-B764-3F89E2A87B70}
+	EndProjectSection
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LyndaCoursesDownloader.ConsoleDownloader", "LyndaCoursesDownloader.ConsoleDownloader\LyndaCoursesDownloader.ConsoleDownloader.csproj", "{2FC2CED6-8D4F-48CB-B075-2CB6A204B9AC}"
+	ProjectSection(ProjectDependencies) = postProject
+		{FDD9E97F-D691-41B4-BE25-158965F9E657} = {FDD9E97F-D691-41B4-BE25-158965F9E657}
+		{2474A7E5-7D88-4D78-8A82-CC28C2FBBA9B} = {2474A7E5-7D88-4D78-8A82-CC28C2FBBA9B}
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{FDD9E97F-D691-41B4-BE25-158965F9E657}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FDD9E97F-D691-41B4-BE25-158965F9E657}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FDD9E97F-D691-41B4-BE25-158965F9E657}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FDD9E97F-D691-41B4-BE25-158965F9E657}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6022209C-A2B4-4CCA-B764-3F89E2A87B70}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6022209C-A2B4-4CCA-B764-3F89E2A87B70}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6022209C-A2B4-4CCA-B764-3F89E2A87B70}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6022209C-A2B4-4CCA-B764-3F89E2A87B70}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2474A7E5-7D88-4D78-8A82-CC28C2FBBA9B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2474A7E5-7D88-4D78-8A82-CC28C2FBBA9B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2474A7E5-7D88-4D78-8A82-CC28C2FBBA9B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2474A7E5-7D88-4D78-8A82-CC28C2FBBA9B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2FC2CED6-8D4F-48CB-B075-2CB6A204B9AC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2FC2CED6-8D4F-48CB-B075-2CB6A204B9AC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2FC2CED6-8D4F-48CB-B075-2CB6A204B9AC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2FC2CED6-8D4F-48CB-B075-2CB6A204B9AC}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {0B8B3316-976C-41BC-A45A-CEF64A0EAB99}
+	EndGlobalSection
+EndGlobal

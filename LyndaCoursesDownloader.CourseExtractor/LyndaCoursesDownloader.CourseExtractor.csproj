@@ -1,0 +1,22 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.1</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Bumblebee.Automation" Version="2.1.2" />
+    <PackageReference Include="Selenium.WebDriver" Version="3.141.0" />
+    <PackageReference Include="System.Text.Encoding.CodePages" Version="4.7.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="LyndaCoursesDownloader.CourseContent">
+      <HintPath>..\LyndaCoursesDownloader.CourseContent\bin\Debug\netstandard2.1\LyndaCoursesDownloader.CourseContent.dll</HintPath>
+    </Reference>
+    <Reference Include="LyndaCoursesDownloader.CourseElements">
+      <HintPath>..\LyndaCoursesDownloader.CourseElements\bin\Debug\netstandard2.1\LyndaCoursesDownloader.CourseElements.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+</Project>

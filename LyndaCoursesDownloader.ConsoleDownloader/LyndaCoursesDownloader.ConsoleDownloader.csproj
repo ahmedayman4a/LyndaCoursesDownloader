@@ -1,0 +1,42 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>netcoreapp3.0</TargetFramework>
+    <ApplicationIcon>favicon.ico</ApplicationIcon>
+    <PublisherName>ahmedayman4a</PublisherName>
+    <PublishSingleFile>true</PublishSingleFile>
+    <PublishTrimmed>true</PublishTrimmed>
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <PublishReadyToRun>true</PublishReadyToRun>
+    <PackageId>LyndaCoursesDownloader</PackageId>
+    <Product>LyndaCoursesDownloader</Product>
+    <Company />
+    <Authors>ahmedayman4a</Authors>
+    <Copyright>2020</Copyright>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <PlatformTarget>x64</PlatformTarget>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Bumblebee.Automation" Version="2.1.2" />
+    <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
+    <PackageReference Include="Selenium.WebDriver" Version="3.141.0" />
+    <PackageReference Include="System.Text.Encoding.CodePages" Version="4.7.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="LyndaCoursesDownloader.CourseContent">
+      <HintPath>..\LyndaCoursesDownloader.CourseContent\bin\Debug\netstandard2.1\LyndaCoursesDownloader.CourseContent.dll</HintPath>
+    </Reference>
+    <Reference Include="LyndaCoursesDownloader.CourseExtractor">
+      <HintPath>..\LyndaCoursesDownloader.CourseExtractor\bin\Debug\netstandard2.1\LyndaCoursesDownloader.CourseExtractor.dll</HintPath>
+    </Reference>
+    <Reference Include="ShellProgressBar">
+      <HintPath>bin\Debug\netcoreapp3.0\ShellProgressBar.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+</Project>
