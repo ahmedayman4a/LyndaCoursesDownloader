@@ -40,4 +40,4 @@ This program needs geckodriver or chromedriver to be present in the same directo
   4. Look for the word "token" the column "Name". Copy the value and paste it in the LyndaCoursesDownloader program.
 
 ## Acknowledgments
-* Progress bar from[ShellProgressBar Project](https://github.com/Mpdreamz/shellprogressbar) 
+* Progress bar from [ShellProgressBar Project](https://github.com/Mpdreamz/shellprogressbar) 
