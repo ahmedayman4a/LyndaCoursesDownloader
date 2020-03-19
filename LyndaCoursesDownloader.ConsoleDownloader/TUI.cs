@@ -99,7 +99,6 @@ namespace LyndaCoursesDownloader.ConsoleDownloader
                 Console.Write(answerGlyph);
                 loginToken = Console.ReadLine().Clean(false);
             }
-            Console.WriteLine(continueGlyph + "Logging in......");
             return loginToken;
         }
 

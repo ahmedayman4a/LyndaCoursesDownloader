@@ -177,10 +177,10 @@ namespace LyndaCoursesDownloader.ConsoleDownloader
                     try
                     {
                         string token = TUI.GetLoginToken();
-                        Console.WriteLine(TUI.continueGlyph + "Logging in...");
                         var loginTask = extractor.Login(token, courseUrl, initializationTask);
                         var courseRootDirectory = TUI.GetPath();
                         var selectedQuality = TUI.GetQuality();
+                        Console.WriteLine(TUI.continueGlyph + "Logging in...");
                         loginTask.Wait();
                         Console.WriteLine(TUI.continueGlyph + "Logged in successfully");
                         Config config = new Config
