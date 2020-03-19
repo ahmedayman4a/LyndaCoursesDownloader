@@ -24,7 +24,7 @@ namespace LyndaCoursesDownloader.CourseExtractor
             }
             catch (WebDriverException)
             {
-                CreateWebDriver();
+                return CreateWebDriver();
             }
             
             FixDriverCommandExecutionDelay(driver);
