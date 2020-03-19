@@ -15,7 +15,7 @@ namespace LyndaCoursesDownloader.CourseExtractor
             {
                 PageLoadStrategy = PageLoadStrategy.Eager,
             };
-            //firefoxOptions.AddArgument("-headless");
+            firefoxOptions.AddArgument("-headless");
             var firefoxProfile = new FirefoxProfile();
             firefoxProfile.SetPreference("media.volume_scale", "0.0");
             firefoxOptions.Profile = firefoxProfile;
