@@ -11,7 +11,11 @@ namespace LyndaCoursesDownloader.CourseExtractor
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
             var service = ChromeDriverService.CreateDefaultService("./");
             var chromeOptions = new ChromeOptions();
-
+            chromeOptions.SetLoggingPreference(LogType.Client, LogLevel.Off);
+            chromeOptions.SetLoggingPreference(LogType.Browser, LogLevel.Off);
+            chromeOptions.SetLoggingPreference(LogType.Driver, LogLevel.Off);
+            chromeOptions.SetLoggingPreference(LogType.Profiler, LogLevel.Off);
+            chromeOptions.SetLoggingPreference(LogType.Server, LogLevel.Off);
             chromeOptions.PageLoadStrategy = PageLoadStrategy.Eager;
             chromeOptions.AddArgument("-headless");
             chromeOptions.AddArgument("--log-level=OFF");

@@ -106,7 +106,7 @@ namespace LyndaCoursesDownloader.CourseExtractor
         {
             Parallel.ForEach(Sessions, (session) =>
             {
-                WebDriverWait wait = new WebDriverWait(session.Driver, TimeSpan.FromSeconds(10));
+                WebDriverWait wait = new WebDriverWait(session.Driver, TimeSpan.FromSeconds(30));
                 Video video = allVideos.GetAvailableVideo(StatusLock);
                 session.NavigateTo<CoursePage>(video.VideoUrl);
                 Video nextVideo = allVideos.GetAvailableVideo(StatusLock);

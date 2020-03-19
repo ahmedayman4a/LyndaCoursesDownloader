@@ -7,13 +7,14 @@
     <PublisherName>ahmedayman4a</PublisherName>
     <PublishSingleFile>true</PublishSingleFile>
     <PublishTrimmed>true</PublishTrimmed>
-    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <RuntimeIdentifier>linux-x64</RuntimeIdentifier>
     <PublishReadyToRun>true</PublishReadyToRun>
     <PackageId>LyndaCoursesDownloader</PackageId>
     <Product>LyndaCoursesDownloader</Product>
     <Company />
     <Authors>ahmedayman4a</Authors>
     <Copyright>2020</Copyright>
+    <Version>1.0.1</Version>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">

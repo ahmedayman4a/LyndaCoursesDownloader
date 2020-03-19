@@ -9,7 +9,7 @@ namespace LyndaCoursesDownloader.CourseExtractor
         public override IWebDriver CreateWebDriver()
         {
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
-            var service = FirefoxDriverService.CreateDefaultService();
+            var service = FirefoxDriverService.CreateDefaultService("./");
 
             var firefoxOptions = new FirefoxOptions
             {
@@ -20,6 +20,11 @@ namespace LyndaCoursesDownloader.CourseExtractor
             firefoxProfile.SetPreference("media.volume_scale", "0.0");
             firefoxOptions.Profile = firefoxProfile;
             firefoxOptions.LogLevel = FirefoxDriverLogLevel.Fatal;
+            firefoxOptions.SetLoggingPreference(LogType.Client, LogLevel.Off);
+            firefoxOptions.SetLoggingPreference(LogType.Browser, LogLevel.Off);
+            firefoxOptions.SetLoggingPreference(LogType.Driver, LogLevel.Off);
+            firefoxOptions.SetLoggingPreference(LogType.Profiler, LogLevel.Off);
+            firefoxOptions.SetLoggingPreference(LogType.Server, LogLevel.Off);
             service.HideCommandPromptWindow = true;
 
             IWebDriver driver = null;
