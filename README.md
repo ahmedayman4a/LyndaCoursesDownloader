@@ -20,7 +20,7 @@ This program needs geckodriver or chromedriver to be present in the same directo
 
 ## How to use
 * #### Windows
-  Just run the .exe
+  Just run the LyndaCoursesDownloader.exe file
 * #### Linux
   Open a terminal in the directory of the LyndaCoursesDownloader program then type : 
 
