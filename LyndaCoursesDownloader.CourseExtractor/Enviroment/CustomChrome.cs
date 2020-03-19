@@ -18,7 +18,15 @@ namespace LyndaCoursesDownloader.CourseExtractor
             chromeOptions.AddArgument("--mute-audio");
             service.HideCommandPromptWindow = true;
             IWebDriver driver = null;
-            driver = new ChromeDriver(service, chromeOptions);
+            try
+            {
+                driver = new ChromeDriver(service, chromeOptions);
+            }
+            catch (WebDriverException)
+            {
+                CreateWebDriver();
+            }
+            
             FixDriverCommandExecutionDelay(driver);
 
 

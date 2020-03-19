@@ -9,13 +9,13 @@ namespace LyndaCoursesDownloader.CourseExtractor
         public override IWebDriver CreateWebDriver()
         {
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
-            var service = FirefoxDriverService.CreateDefaultService("./", "geckodriver.exe");
+            var service = FirefoxDriverService.CreateDefaultService();
 
             var firefoxOptions = new FirefoxOptions
             {
                 PageLoadStrategy = PageLoadStrategy.Eager,
             };
-            firefoxOptions.AddArgument("-headless");
+            //firefoxOptions.AddArgument("-headless");
             var firefoxProfile = new FirefoxProfile();
             firefoxProfile.SetPreference("media.volume_scale", "0.0");
             firefoxOptions.Profile = firefoxProfile;
@@ -23,7 +23,15 @@ namespace LyndaCoursesDownloader.CourseExtractor
             service.HideCommandPromptWindow = true;
 
             IWebDriver driver = null;
-            driver = new FirefoxDriver(service, firefoxOptions);
+            try
+            {
+                driver = new FirefoxDriver(service, firefoxOptions);
+            }
+            catch (WebDriverException)
+            {
+                CreateWebDriver();
+            }
+            
             FixDriverCommandExecutionDelay(driver);
 
 

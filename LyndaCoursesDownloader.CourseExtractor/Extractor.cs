@@ -172,9 +172,8 @@ namespace LyndaCoursesDownloader.CourseExtractor
             var videoBlock = session.CurrentPage<CoursePage>().VideoBlock;
             wait.Until(ExpectedConditions.ElementToBeClickable(By.Id("banner-play")));
             videoBlock.VideoId = video.Id;
-            wait.Until(ExpectedConditions.ElementToBeClickable(By.Id("player-settings")));
             videoBlock.WatchVideoButton.Click();
-            //videoBlock.PlayPauseButton.Click();
+            wait.Until(ExpectedConditions.ElementToBeClickable(By.Id("player-settings")));
             videoBlock.QualitySettings.Click();
             switch (selectedQuality)
             {

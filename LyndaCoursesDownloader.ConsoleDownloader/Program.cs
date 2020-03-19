@@ -97,6 +97,7 @@ namespace LyndaCoursesDownloader.ConsoleDownloader
                 {
 
                     string courseUrl = TUI.GetCourseUrl();
+                    Console.WriteLine(TUI.continueGlyph+"Logging in...");
                     var extractor = new Extractor();
                     var initializationTask = extractor.InitializeDriver(config.Browser);
                     initializationTask.Start();
@@ -176,6 +177,7 @@ namespace LyndaCoursesDownloader.ConsoleDownloader
                     try
                     {
                         string token = TUI.GetLoginToken();
+                        Console.WriteLine(TUI.continueGlyph + "Logging in...");
                         var loginTask = extractor.Login(token, courseUrl, initializationTask);
                         var courseRootDirectory = TUI.GetPath();
                         var selectedQuality = TUI.GetQuality();
