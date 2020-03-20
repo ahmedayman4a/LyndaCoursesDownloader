@@ -16,14 +16,13 @@ namespace LyndaCoursesDownloader.CourseExtractor
     {
         public delegate void ExtractionProgressChangedEventHandler();
         public event ExtractionProgressChangedEventHandler ExtractionProgressChanged;
-        private static int NumberOfSessions = 1;
+        private static int NumberOfSessions = 1; // ability to set number of sessions in the future
         private static Session[] Sessions = new Session[NumberOfSessions];
         private static CoursePage coursePage;
         private static List<Video> allVideos;
         private static Browser SelectedBrowser;
         private static Course course;
         private static object StatusLock = new object();
-
 
         public Task InitializeDriver(Browser selectedBrowser)
         {
@@ -106,6 +105,7 @@ namespace LyndaCoursesDownloader.CourseExtractor
         {
             Parallel.ForEach(Sessions, (session) =>
             {
+                 bool _isFirstVideo = true;
                 WebDriverWait wait = new WebDriverWait(session.Driver, TimeSpan.FromSeconds(30));
                 Video video = allVideos.GetAvailableVideo(StatusLock);
                 session.NavigateTo<CoursePage>(video.VideoUrl);
@@ -114,12 +114,28 @@ namespace LyndaCoursesDownloader.CourseExtractor
                 {
                     if (nextVideo is null)
                     {
-                        ExtractVideo(video, session, wait, selectedQuality);
+                        if (_isFirstVideo)
+                        {
+                            _isFirstVideo = false;
+                            ExtractVideo(video, session, wait, selectedQuality);
+                        }
+                        else
+                        {
+                            ExtractVideo(video, session, wait);
+                        }
                         return;
                     }
                     else
                     {
-                        ExtractVideo(video, session, wait, selectedQuality, nextVideo);
+                        if (_isFirstVideo)
+                        {
+                            _isFirstVideo = false;
+                            ExtractVideo(video, session, wait, selectedQuality, nextVideo);
+                        }
+                        else
+                        {
+                            ExtractVideo(video, session, wait, null, nextVideo);
+                        }
                         video = nextVideo;
                         nextVideo = allVideos.GetAvailableVideo(StatusLock);
                     }
@@ -163,7 +179,7 @@ namespace LyndaCoursesDownloader.CourseExtractor
             return course;
         }
 
-        private void ExtractVideo(Video video, Session session, WebDriverWait wait, Quality selectedQuality, Video nextVideo = null)
+        private void ExtractVideo(Video video, Session session, WebDriverWait wait, Quality? selectedQuality = null, Video nextVideo = null)
         {
             session.Driver.SwitchTo().Window(session.Driver.WindowHandles.First());
             if (!(nextVideo is null))
@@ -173,20 +189,24 @@ namespace LyndaCoursesDownloader.CourseExtractor
             wait.Until(ExpectedConditions.ElementToBeClickable(By.Id("banner-play")));
             videoBlock.VideoId = video.Id;
             videoBlock.WatchVideoButton.Click();
-            wait.Until(ExpectedConditions.ElementToBeClickable(By.Id("player-settings")));
-            videoBlock.QualitySettings.Click();
-            switch (selectedQuality)
+            if (!(selectedQuality is null))
             {
-                case Quality.Low:
-                    videoBlock.Quality360.Click();
-                    break;
-                case Quality.Medium:
-                    videoBlock.Quality540.Click();
-                    break;
-                case Quality.High:
-                    videoBlock.Quality720.Click();
-                    break;
+                wait.Until(ExpectedConditions.ElementToBeClickable(By.Id("player-settings")));
+                videoBlock.QualitySettings.Click();
+                switch (selectedQuality)
+                {
+                    case Quality.Low:
+                        videoBlock.Quality360.Click();
+                        break;
+                    case Quality.Medium:
+                        videoBlock.Quality540.Click();
+                        break;
+                    case Quality.High:
+                        videoBlock.Quality720.Click();
+                        break;
+                }
             }
+            
 
             video.VideoDownloadUrl = videoBlock.VideoDownloadUrl;
             video.CaptionText = session.NavigateTo<CaptionsPage>(videoBlock.CaptionElement.GetAttribute("src")).CaptionText;

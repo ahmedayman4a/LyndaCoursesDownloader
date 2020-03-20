@@ -52,7 +52,7 @@ namespace LyndaCoursesDownloader.ConsoleDownloader
             {
                 Console.WriteLine(continueGlyph + "Where do you want to download your course to?(ex:D:\\MyCourses)");
                 Console.Write(answerGlyph);
-                string pathToCourse = Console.ReadLine().Clean();
+                string pathToCourse = Console.ReadLine().Clean(false);
                 if (!Directory.Exists(pathToCourse))
                 {
                     ShowError("Provided directory doesn't exist");
@@ -69,7 +69,7 @@ namespace LyndaCoursesDownloader.ConsoleDownloader
             while (true)
             {
                 Console.WriteLine(continueGlyph + "Which browser do you want the downloader to run on?");
-                Console.WriteLine(continueGlyph + "Available Browsers : 1.Firefox  2.Chrome");
+                Console.WriteLine(continueGlyph + "Available Browsers : 1.Firefox (Recommended)  2.Chrome");
                 Console.Write(answerGlyph);
                 string browser = Console.ReadLine();
                 switch (browser.Clean())

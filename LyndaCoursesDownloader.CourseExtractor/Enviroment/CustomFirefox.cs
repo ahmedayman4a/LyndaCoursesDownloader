@@ -1,5 +1,7 @@
 ﻿using OpenQA.Selenium;
 using OpenQA.Selenium.Firefox;
+using System.IO;
+using System.Runtime.InteropServices;
 using System.Text;
 
 namespace LyndaCoursesDownloader.CourseExtractor
@@ -9,8 +11,9 @@ namespace LyndaCoursesDownloader.CourseExtractor
         public override IWebDriver CreateWebDriver()
         {
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
-            var service = FirefoxDriverService.CreateDefaultService("./");
-
+            string driverFileName = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "geckodriver.exe" : "geckodriver";
+            var service = FirefoxDriverService.CreateDefaultService(Directory.GetCurrentDirectory(), driverFileName);
+            service.SuppressInitialDiagnosticInformation = true;
             var firefoxOptions = new FirefoxOptions
             {
                 PageLoadStrategy = PageLoadStrategy.Eager,
@@ -27,7 +30,7 @@ namespace LyndaCoursesDownloader.CourseExtractor
             firefoxOptions.SetLoggingPreference(LogType.Server, LogLevel.Off);
             service.HideCommandPromptWindow = true;
 
-            IWebDriver driver = null;
+            IWebDriver driver;
             try
             {
                 driver = new FirefoxDriver(service, firefoxOptions);

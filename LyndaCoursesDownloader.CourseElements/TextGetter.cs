@@ -6,7 +6,7 @@ namespace LyndaCoursesDownloader.CourseElements
 {
     public static class TextGetter
     {
-        private const int timeout = 20;
+        private const int timeout = 30;
         public static string GetText(Func<string> TextGetterMethod)
         {
             var stopwatch = new Stopwatch();

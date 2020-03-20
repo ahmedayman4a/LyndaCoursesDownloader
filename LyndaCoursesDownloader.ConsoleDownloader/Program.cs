@@ -97,7 +97,7 @@ namespace LyndaCoursesDownloader.ConsoleDownloader
                 {
 
                     string courseUrl = TUI.GetCourseUrl();
-                    Console.WriteLine(TUI.continueGlyph+"Logging in...");
+                    Console.WriteLine(TUI.continueGlyph + "Logging in...");
                     var extractor = new Extractor();
                     var initializationTask = extractor.InitializeDriver(config.Browser);
                     initializationTask.Start();
@@ -173,56 +173,46 @@ namespace LyndaCoursesDownloader.ConsoleDownloader
                     initializationTask.Start();
                     string courseUrl = TUI.GetCourseUrl();
 
-
-                    try
+                    while (true)
                     {
-                        string token = TUI.GetLoginToken();
-                        var loginTask = extractor.Login(token, courseUrl, initializationTask);
-                        var courseRootDirectory = TUI.GetPath();
-                        var selectedQuality = TUI.GetQuality();
-                        Console.WriteLine(TUI.continueGlyph + "Logging in...");
-                        loginTask.Wait();
-                        Console.WriteLine(TUI.continueGlyph + "Logged in successfully");
-                        Config config = new Config
+                        try
                         {
-                            AuthenticationToken = token,
-                            Browser = selectedBrowser,
-                            Quality = selectedQuality,
-                            CourseDirectory = courseRootDirectory
-                        };
-                        File.WriteAllText("./Config.json", config.ToJson());
-                        Console.WriteLine(TUI.continueGlyph + "Saved entries to config file");
-                        Console.WriteLine(TUI.endGlyph + "Intializing Course Extractor...");
-                        Course course = new Course();
-                        int videosCount;
-                        extractor.ExtractCourseStructure(out videosCount);
-                        using (pbarExtractor = new ProgressBar(videosCount, "Extracting Course Links - This will take some time", optionPbarExtractor))
-                        {
-                            extractor.ExtractionProgressChanged += Extractor_ExtractionProgressChanged;
-                            course = extractor.ExtractCourse(selectedQuality);
+                            string token = TUI.GetLoginToken();
+                            var loginTask = extractor.Login(token, courseUrl, initializationTask);
+                            var courseRootDirectory = TUI.GetPath();
+                            var selectedQuality = TUI.GetQuality();
+                            Console.WriteLine(TUI.continueGlyph + "Logging in...");
+                            loginTask.Wait();
+                            Console.WriteLine(TUI.continueGlyph + "Logged in successfully");
+                            Config config = new Config
+                            {
+                                AuthenticationToken = token,
+                                Browser = selectedBrowser,
+                                Quality = selectedQuality,
+                                CourseDirectory = courseRootDirectory
+                            };
+                            File.WriteAllText("./Config.json", config.ToJson());
+                            Console.WriteLine(TUI.continueGlyph + "Saved entries to config file");
+                            Console.WriteLine(TUI.endGlyph + "Intializing Course Extractor...");
+                            Course course = new Course();
+                            extractor.ExtractCourseStructure(out int videosCount);
+                            using (pbarExtractor = new ProgressBar(videosCount, "Extracting Course Links - This will take some time", optionPbarExtractor))
+                            {
+                                extractor.ExtractionProgressChanged += Extractor_ExtractionProgressChanged;
+                                course = extractor.ExtractCourse(selectedQuality);
+                            }
+
+                            CourseDownloader.DownloadCourse(course, courseRootDirectory);
+                            return;
                         }
-
-                        CourseDownloader.DownloadCourse(course, courseRootDirectory);
-                        return;
-                    }
-                    catch (InvalidTokenException)
-                    {
-                        TUI.ShowError("The token you supplied is invalid - Login Failed");
-                    }
-                    catch (WebDriverException ex)
-                    {
-                        TUI.ShowError("An error occured in the driver : " + ex.Message + "at");
-                        TUI.ShowError("Error details : " + ex.StackTrace);
-                        TUI.ShowError("Trying again...");
-                        RunWithoutConfig();
-                    }
-                    catch (Exception ex)
-                    {
-                        TUI.ShowError("An error occured while extracting the course data : " + ex.Message);
-                        TUI.ShowError("Error details : " + ex.StackTrace);
-                        TUI.ShowError("Trying again...");
+                        catch (InvalidTokenException)
+                        {
+                            TUI.ShowError("The token you supplied is invalid - Login Failed");
+                        }
                     }
                 }
+
+
 
                 catch (WebDriverException ex)
                 {

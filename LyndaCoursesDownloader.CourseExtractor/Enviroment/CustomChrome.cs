@@ -1,5 +1,7 @@
 ﻿using OpenQA.Selenium;
 using OpenQA.Selenium.Chrome;
+using System.IO;
+using System.Runtime.InteropServices;
 using System.Text;
 
 namespace LyndaCoursesDownloader.CourseExtractor
@@ -9,7 +11,9 @@ namespace LyndaCoursesDownloader.CourseExtractor
         public override IWebDriver CreateWebDriver()
         {
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
-            var service = ChromeDriverService.CreateDefaultService("./");
+            string driverFileName = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "chromedriver.exe" : "chromedriver";
+            var service = ChromeDriverService.CreateDefaultService(Directory.GetCurrentDirectory(), driverFileName);
+            service.SuppressInitialDiagnosticInformation = true;
             var chromeOptions = new ChromeOptions();
             chromeOptions.SetLoggingPreference(LogType.Client, LogLevel.Off);
             chromeOptions.SetLoggingPreference(LogType.Browser, LogLevel.Off);
@@ -17,11 +21,16 @@ namespace LyndaCoursesDownloader.CourseExtractor
             chromeOptions.SetLoggingPreference(LogType.Profiler, LogLevel.Off);
             chromeOptions.SetLoggingPreference(LogType.Server, LogLevel.Off);
             chromeOptions.PageLoadStrategy = PageLoadStrategy.Eager;
-            chromeOptions.AddArgument("-headless");
+            chromeOptions.AddArguments("--start-maximized");
+            //chromeOptions.AddArgument("--headless");
+            //chromeOptions.AddArgument("--no-sandbox");
             chromeOptions.AddArgument("--log-level=OFF");
             chromeOptions.AddArgument("--mute-audio");
+            //chromeOptions.AddArgument("--proxy-server='direct://'");
+            //chromeOptions.AddArgument("--proxy-bypass-list=*");
+            chromeOptions.AddArguments("--blink-settings=imagesEnabled=false");
             service.HideCommandPromptWindow = true;
-            IWebDriver driver = null;
+            IWebDriver driver;
             try
             {
                 driver = new ChromeDriver(service, chromeOptions);
