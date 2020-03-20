@@ -29,6 +29,8 @@ This program needs geckodriver or chromedriver to be present in the same directo
 
         ./LyndaCoursesDownloader
 
+![LyndaCoursesDownloaderDemoGIF](LyndaCoursesDownloader.ConsoleDownloader/img/LyndaCoursesDownloaderTutorial.gif)
+
 ## Getting the lynda authentication token cookie
 * #### Firefox
   1. Press `Shift+F9` on your keyboard **OR** right click anywhere on the Lynda website , choose "Inspect Element" and click storage.
