@@ -23,11 +23,8 @@ namespace LyndaCoursesDownloader.CourseExtractor
             chromeOptions.PageLoadStrategy = PageLoadStrategy.Eager;
             chromeOptions.AddArguments("--start-maximized");
             //chromeOptions.AddArgument("--headless");
-            //chromeOptions.AddArgument("--no-sandbox");
             chromeOptions.AddArgument("--log-level=OFF");
             chromeOptions.AddArgument("--mute-audio");
-            //chromeOptions.AddArgument("--proxy-server='direct://'");
-            //chromeOptions.AddArgument("--proxy-bypass-list=*");
             chromeOptions.AddArguments("--blink-settings=imagesEnabled=false");
             service.HideCommandPromptWindow = true;
             IWebDriver driver;

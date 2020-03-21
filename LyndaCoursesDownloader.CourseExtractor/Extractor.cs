@@ -105,7 +105,7 @@ namespace LyndaCoursesDownloader.CourseExtractor
         {
             Parallel.ForEach(Sessions, (session) =>
             {
-                 bool _isFirstVideo = true;
+                bool _isFirstVideo = true;
                 WebDriverWait wait = new WebDriverWait(session.Driver, TimeSpan.FromSeconds(30));
                 Video video = allVideos.GetAvailableVideo(StatusLock);
                 session.NavigateTo<CoursePage>(video.VideoUrl);
@@ -145,76 +145,55 @@ namespace LyndaCoursesDownloader.CourseExtractor
             });
 
 
-            #region OldForeach
-
-
-            //int j = 1;
-            //foreach (var video in allVideos)
-            //{
-            //    session.NavigateTo<CoursePage>(video.VideoUrl);
-            //    var videoBlock = session.CurrentPage<CoursePage>().VideoBlock;
-            //    wait.Until(ExpectedConditions.ElementToBeClickable(By.Id("banner-play")));
-
-            //    videoBlock.VideoId = video.Id;
-            //    videoBlock.WatchVideoButton.Click();
-            //    videoBlock.QualitySettings.Click();
-            //    switch (selectedQuality)
-            //    {
-            //        case Quality.Low:
-            //            videoBlock.Quality360.Click();
-            //            break;
-            //        case Quality.Medium:
-            //            videoBlock.Quality540.Click();
-            //            break;
-            //        case Quality.High:
-            //            videoBlock.Quality720.Click();
-            //            break;
-            //    }
-
-            //    video.VideoDownloadUrl = videoBlock.VideoDownloadUrl;
-            //    video.CaptionText = session.NavigateTo<CaptionsPage>(videoBlock.CaptionElement.GetAttribute("src")).CaptionText;
-            //    ExtractionProgressChanged(j/allVideos.Count());
-            //}
-            #endregion
             return course;
         }
 
         private void ExtractVideo(Video video, Session session, WebDriverWait wait, Quality? selectedQuality = null, Video nextVideo = null)
         {
-            session.Driver.SwitchTo().Window(session.Driver.WindowHandles.First());
-            if (!(nextVideo is null))
-                session.ExecuteJavaScript($"window.open('{nextVideo.VideoUrl}','_blank');");
-            session.Driver.SwitchTo().Window(session.Driver.WindowHandles.First());
-            var videoBlock = session.CurrentPage<CoursePage>().VideoBlock;
-            wait.Until(ExpectedConditions.ElementToBeClickable(By.Id("banner-play")));
-            videoBlock.VideoId = video.Id;
-            videoBlock.WatchVideoButton.Click();
-            if (!(selectedQuality is null))
+            try
             {
-                wait.Until(ExpectedConditions.ElementToBeClickable(By.Id("player-settings")));
-                videoBlock.QualitySettings.Click();
-                switch (selectedQuality)
+                session.Driver.SwitchTo().Window(session.Driver.WindowHandles.First());
+                if (!(nextVideo is null))
                 {
-                    case Quality.Low:
-                        videoBlock.Quality360.Click();
-                        break;
-                    case Quality.Medium:
-                        videoBlock.Quality540.Click();
-                        break;
-                    case Quality.High:
-                        videoBlock.Quality720.Click();
-                        break;
+                    session.ExecuteJavaScript($"window.open('{nextVideo.VideoUrl}','_blank');");
+                    session.Driver.SwitchTo().Window(session.Driver.WindowHandles.First());
                 }
-            }
-            
+                var videoBlock = session.CurrentPage<CoursePage>().VideoBlock;
+                wait.Until(ExpectedConditions.ElementToBeClickable(By.Id("banner-play")));
+                videoBlock.VideoId = video.Id;
+                videoBlock.WatchVideoButton.Click();
+                if (!(selectedQuality is null))
+                {
+                    wait.Until(ExpectedConditions.ElementToBeClickable(By.Id("player-settings")));
+                    videoBlock.QualitySettings.Click();
+                    switch (selectedQuality)
+                    {
+                        case Quality.Low:
+                            videoBlock.Quality360.Click();
+                            break;
+                        case Quality.Medium:
+                            videoBlock.Quality540.Click();
+                            break;
+                        case Quality.High:
+                            videoBlock.Quality720.Click();
+                            break;
+                    }
+                }
 
-            video.VideoDownloadUrl = videoBlock.VideoDownloadUrl;
-            video.CaptionText = session.NavigateTo<CaptionsPage>(videoBlock.CaptionElement.GetAttribute("src")).CaptionText;
-            session.Driver.Close();
-            ExtractionProgressChanged();
-            Monitor.Enter(StatusLock);
-            video.CurrentVideoStatus = CurrentStatus.Finished;
-            Monitor.Exit(StatusLock);
+
+                video.VideoDownloadUrl = videoBlock.VideoDownloadUrl;
+                video.CaptionText = session.NavigateTo<CaptionsPage>(videoBlock.CaptionElement.GetAttribute("src")).CaptionText;
+                session.Driver.Close();
+                ExtractionProgressChanged();
+                Monitor.Enter(StatusLock);
+                video.CurrentVideoStatus = CurrentStatus.Finished;
+                Monitor.Exit(StatusLock);
+            }
+            catch (WebDriverException)
+            {
+                // Don't pass next video because its tab is already created
+                ExtractVideo(video, session, wait, selectedQuality);
+            }
         }
         public static void KillDrivers()
         {
