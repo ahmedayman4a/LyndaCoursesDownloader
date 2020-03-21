@@ -6,7 +6,7 @@
 * Cross platform
 * Download in the video quality you like
 * Doesn't need the lynda desktop app
-* Will be adding a GUI soon which will make it the only Lynda Courses Downloader with a GUI because I couldn't find any working ones
+* Will be adding a GUI with version `1.0.0` which will make it the only Lynda Courses Downloader with a GUI because I couldn't find any working ones
 
 ## Easy install
 Just go to the [releases section](https://github.com/ahmedayman4a/LyndaCoursesDownloader/releases) and download the version that suits your platform.
