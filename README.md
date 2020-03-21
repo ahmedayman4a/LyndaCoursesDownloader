@@ -42,6 +42,7 @@ This program needs geckodriver or chromedriver to be present in the same directo
   3. Double click on the word "cookies" then click on www.lynda.com
   4. Look for the word "token" the column "Name". Copy the value and paste it in the LyndaCoursesDownloader program.
   ![LyndaCoursesDownloader chrome token tutorial gif](LyndaCoursesDownloader.ConsoleDownloader/img/LyndaTokenTutorialChromeCompressed.gif)
-
+## Any Questions?
+Just create an [issue](https://github.com/ahmedayman4a/LyndaCoursesDownloader/issues/new/choose) with the tag `question`
 ## Acknowledgments
 * Progress bar from [ShellProgressBar Project](https://github.com/Mpdreamz/shellprogressbar) 
