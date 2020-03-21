@@ -35,12 +35,13 @@ This program needs geckodriver or chromedriver to be present in the same directo
 * #### Firefox
   1. Press `Shift+F9` on your keyboard **OR** right click anywhere on the Lynda website , choose "Inspect Element" and click storage.
   2. Look for the word "token" the column "Name". Copy the value and paste it in the LyndaCoursesDownloader program.
-  ![LyndaCoursesDownloaderFirefoxTokenGif](LyndaCoursesDownloader.ConsoleDownloader/img/LyndaTokenTutorialFirefox.gif)
+  ![LyndaCoursesDownloader firefox token tutorial gif](LyndaCoursesDownloader.ConsoleDownloader/img/LyndaTokenTutorialFirefox.gif)
 * #### Google Chrome
   1. Right click anywhere on the page and click inspect element **OR** press `F12` on your keyboard
   2. Click on the 2 arrows in the top right corner beside the word performance then click Application
   3. Double click on the word "cookies" then click on www.lynda.com
   4. Look for the word "token" the column "Name". Copy the value and paste it in the LyndaCoursesDownloader program.
+  ![LyndaCoursesDownloader chrome token tutorial gif](LyndaCoursesDownloader.ConsoleDownloader/img/LyndaTokenTutorialChromeCompressed.gif)
 
 ## Acknowledgments
 * Progress bar from [ShellProgressBar Project](https://github.com/Mpdreamz/shellprogressbar) 
