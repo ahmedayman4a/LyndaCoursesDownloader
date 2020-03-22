@@ -133,6 +133,7 @@ namespace LyndaCoursesDownloader.ConsoleDownloader
                         TUI.ShowError("Error details : " + ex.StackTrace);
                         TUI.ShowError("Trying again...");
                         RunWithConfig(config);
+                        return;
                     }
                     catch (Exception ex)
                     {
@@ -140,6 +141,7 @@ namespace LyndaCoursesDownloader.ConsoleDownloader
                         TUI.ShowError("Error details : " + ex.StackTrace);
                         TUI.ShowError("Trying again...");
                         RunWithConfig(config);
+                        return;
                     }
 
 
@@ -150,12 +152,14 @@ namespace LyndaCoursesDownloader.ConsoleDownloader
                     TUI.ShowError("Error details : " + ex.StackTrace);
                     TUI.ShowError("Trying again...");
                     RunWithConfig(config);
+                    return;
                 }
                 catch (Exception ex)
                 {
                     TUI.ShowError("An error occured : " + ex.Message);
                     TUI.ShowError("Error details : " + ex.StackTrace);
                     RunWithConfig(config);
+                    return;
                 }
 
             }
@@ -220,12 +224,14 @@ namespace LyndaCoursesDownloader.ConsoleDownloader
                     TUI.ShowError("Error details : " + ex.StackTrace);
                     TUI.ShowError("Trying again...");
                     RunWithoutConfig();
+                    return;
                 }
                 catch (Exception ex)
                 {
                     TUI.ShowError("An error occured : " + ex.Message);
                     TUI.ShowError("Error details : " + ex.StackTrace);
                     RunWithoutConfig();
+                    return;
                 }
             }
         }
