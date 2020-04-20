@@ -1,5 +1,6 @@
 ﻿using LyndaCoursesDownloader.CourseContent;
 using LyndaCoursesDownloader.CourseExtractor;
+using LyndaCoursesDownloader.DownloaderConfig;
 using Newtonsoft.Json;
 using OpenQA.Selenium;
 using ShellProgressBar;
