@@ -29,14 +29,14 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Reference Include="LyndaCoursesDownloader.CourseContent">
-      <HintPath>..\LyndaCoursesDownloader.CourseContent\bin\Debug\netstandard2.1\LyndaCoursesDownloader.CourseContent.dll</HintPath>
-    </Reference>
-    <Reference Include="LyndaCoursesDownloader.CourseExtractor">
-      <HintPath>..\LyndaCoursesDownloader.CourseExtractor\bin\Debug\netstandard2.1\LyndaCoursesDownloader.CourseExtractor.dll</HintPath>
-    </Reference>
+    <ProjectReference Include="..\LyndaCoursesDownloader.CourseContent\LyndaCoursesDownloader.CourseContent.csproj" />
+    <ProjectReference Include="..\LyndaCoursesDownloader.CourseExtractor\LyndaCoursesDownloader.CourseExtractor.csproj" />
+    <ProjectReference Include="..\LyndaCoursesDownloader.DownloaderConfig\LyndaCoursesDownloader.DownloaderConfig.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Reference Include="ShellProgressBar">
-      <HintPath>bin\Debug\netcoreapp3.0\ShellProgressBar.dll</HintPath>
+      <HintPath>Assemblies\ShellProgressBar.dll</HintPath>
     </Reference>
   </ItemGroup>
 

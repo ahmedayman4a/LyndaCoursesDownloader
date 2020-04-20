@@ -1,7 +1,12 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netstandard2.1</TargetFramework>
+    <TargetFramework>netstandard2.0</TargetFramework>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <DebugType>full</DebugType>
+    <DebugSymbols>true</DebugSymbols>
   </PropertyGroup>
 
   <ItemGroup>
@@ -11,12 +16,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Reference Include="LyndaCoursesDownloader.CourseContent">
-      <HintPath>..\LyndaCoursesDownloader.CourseContent\bin\Debug\netstandard2.1\LyndaCoursesDownloader.CourseContent.dll</HintPath>
-    </Reference>
-    <Reference Include="LyndaCoursesDownloader.CourseElements">
-      <HintPath>..\LyndaCoursesDownloader.CourseElements\bin\Debug\netstandard2.1\LyndaCoursesDownloader.CourseElements.dll</HintPath>
-    </Reference>
+    <ProjectReference Include="..\LyndaCoursesDownloader.CourseContent\LyndaCoursesDownloader.CourseContent.csproj" />
+    <ProjectReference Include="..\LyndaCoursesDownloader.CourseElements\LyndaCoursesDownloader.CourseElements.csproj" />
   </ItemGroup>
 
 </Project>
