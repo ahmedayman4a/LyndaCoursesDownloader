@@ -22,6 +22,7 @@ namespace LyndaCoursesDownloader.CourseExtractor
         private static List<Video> allVideos;
         private static Browser SelectedBrowser;
         private static Course course;
+        private const string noCaption = "<div class=\"jsonParseError\">SyntaxError: JSON.parse: expected property name or '}' at line 1 column 3 of the JSON data</div>";
         private static object StatusLock = new object();
 
         public Task InitializeDriver(Browser selectedBrowser)
@@ -182,7 +183,11 @@ namespace LyndaCoursesDownloader.CourseExtractor
 
 
                 video.VideoDownloadUrl = videoBlock.VideoDownloadUrl;
-                video.CaptionText = session.NavigateTo<CaptionsPage>(videoBlock.CaptionElement.GetAttribute("src")).CaptionText;
+                var captionPage = session.NavigateTo<CaptionsPage>(videoBlock.CaptionElement.GetAttribute("src"));
+                //Check if there is a caption for the video
+                //wait.Until(ExpectedConditions.ElementIsVisible(By.TagName("")));
+
+                video.CaptionText = captionPage.CaptionText;
                 session.Driver.Close();
                 ExtractionProgressChanged();
                 Monitor.Enter(StatusLock);
@@ -191,6 +196,7 @@ namespace LyndaCoursesDownloader.CourseExtractor
             }
             catch (WebDriverException)
             {
+                session.NavigateTo<CoursePage>(video.VideoUrl);
                 // Don't pass next video because its tab is already created
                 ExtractVideo(video, session, wait, selectedQuality);
             }
@@ -201,24 +207,17 @@ namespace LyndaCoursesDownloader.CourseExtractor
             {
                 Sessions[0].Driver.Quit();
             }
-            switch (SelectedBrowser)
+            Process[] geckodriverProcesses = Process.GetProcessesByName("geckodriver");
+            foreach (var geckodriverProcess in geckodriverProcesses)
             {
-                case Browser.Firefox:
-                    Process[] geckodriverProcesses = Process.GetProcessesByName("geckodriver");
-                    foreach (var geckodriverProcess in geckodriverProcesses)
-                    {
-                        geckodriverProcess.KillTree();
-                    }
-                    break;
-                case Browser.Chrome:
-                    Process[] chromedriverProcesses = Process.GetProcessesByName("chromedriver");
-                    foreach (var chromedriverProcess in chromedriverProcesses)
-                    {
-                        chromedriverProcess.KillTree();
-                    }
-                    break;
+                geckodriverProcess.KillTree();
             }
-
+            Process[] chromedriverProcesses = Process.GetProcessesByName("chromedriver");
+            foreach (var chromedriverProcess in chromedriverProcesses)
+            {
+                chromedriverProcess.KillTree();
+            }
         }
+
     }
 }

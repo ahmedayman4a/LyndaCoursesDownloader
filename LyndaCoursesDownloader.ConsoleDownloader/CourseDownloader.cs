@@ -68,9 +68,12 @@ namespace LyndaCoursesDownloader.ConsoleDownloader
                                 {
                                     downloadClient.DownloadProgressChanged += DownloadClient_DownloadProgressChanged;
                                     downloadClient.DownloadFileCompleted += DownloadClient_DownloadFileCompleted;
-                                    string captionName = $"[{ video.Id}] { ToSafeFileName(video.Name)}.srt";
                                     string videoName = $"[{ video.Id}] { ToSafeFileName(video.Name)}.mp4";
-                                    File.WriteAllText($"{Path.Combine(chapterDirectory.FullName, ToSafeFileName(captionName))}", video.CaptionText);
+                                    if (!(video.CaptionText is null))
+                                    {
+                                        string captionName = $"[{ video.Id}] { ToSafeFileName(video.Name)}.srt";
+                                        File.WriteAllText($"{Path.Combine(chapterDirectory.FullName, ToSafeFileName(captionName))}", video.CaptionText);
+                                    }
                                     downloadClient.DownloadFileTaskAsync(new Uri(video.VideoDownloadUrl), Path.Combine(chapterDirectory.FullName, videoName)).Wait();
                                 }
                                 pbarChapter.Tick();
@@ -101,7 +104,6 @@ namespace LyndaCoursesDownloader.ConsoleDownloader
         {
             float KbReceived = e.BytesReceived / 1024;
             float TotalKbToReceive = e.TotalBytesToReceive / 1024;
-            //pbarVideo.Message = "Downloading Video : " + currentVideo + "  " + KbReceived + "KB out of " + TotalKbToReceived;
             pbarVideo.Message = String.Format("Downloading Video : {0} {1}KB out of {2}KB", currentVideo, KbReceived, TotalKbToReceive);
             float percentage = KbReceived / TotalKbToReceive;
             var progress = pbarVideo.AsProgress<float>();
