@@ -1,4 +1,4 @@
-﻿using LyndaCoursesDownloader.CourseExtractor;
+﻿using LyndaCoursesDownloader.CourseContent;
 using System;
 using System.IO;
 using System.Text.RegularExpressions;
