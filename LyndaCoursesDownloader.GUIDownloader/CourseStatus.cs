@@ -11,6 +11,7 @@ namespace LyndaCoursesDownloader.GUIDownloader
         NotRunning = 0,
         Starting = 1,
         Running = 2,
-        Finished =3
+        Finished =3,
+        Failed = 4
     }
 }
