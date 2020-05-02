@@ -1,5 +1,6 @@
 ﻿using LyndaCoursesDownloader.CourseContent;
 using Newtonsoft.Json;
+using Serilog;
 using System;
 using System.IO;
 using System.Text;
@@ -56,6 +57,48 @@ namespace LyndaCoursesDownloader.DownloaderConfig
             return decryptedToken;
         }
 
+        /// <summary>
+        /// Make a backup of our config.
+        /// Used to persist config across updates.
+        /// </summary>
+        public static void Backup()
+        {
+            Log.Information("Backing up config file");
+            if (!File.Exists("./Config.json"))
+            {
+                Log.Information("No config file to backup is found");
+                return;
+            }
+            File.Copy("./Config.json", "../ConfigBackup.json", true);
+            Log.Information("Config file backed up successfully");
+        }
+
+        /// <summary>
+        /// Restore our config backup if any.
+        /// Used to persist config across updates.
+        /// </summary>
+        public static void Restore()
+        {
+            Log.Information("Restoring config file");
+            //Restore settings after application update            
+            string destFile = "./Config.json";
+            string sourceFile = "../ConfigBackup.json";
+            // Check if we have settings that we need to restore
+            if (!File.Exists(sourceFile))
+            {
+                Log.Information("No config file to restore is found");
+                return;
+            }
+
+            // Copy our backup file in place 
+            File.Copy(sourceFile, destFile, true);
+
+            // Delete backup file
+            File.Delete(sourceFile);
+            Log.Information("Restored config file");
+
+        }
+
         public static Config FromJson(string json) => JsonConvert.DeserializeObject<Config>(json, Converter.Settings);
 
     }
@@ -78,5 +121,5 @@ namespace LyndaCoursesDownloader.DownloaderConfig
             },
         };
     }
-    
+
 }
