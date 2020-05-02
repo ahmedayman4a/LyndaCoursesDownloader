@@ -22,10 +22,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Bumblebee.Automation" Version="2.1.2" />
-    <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
-    <PackageReference Include="Selenium.WebDriver" Version="3.141.0" />
-    <PackageReference Include="System.Text.Encoding.CodePages" Version="4.7.0" />
+    <PackageReference Include="Selenium.WebDriver.ChromeDriver" Version="81.0.4044.6900" />
+    <PackageReference Include="Selenium.WebDriver.GeckoDriver" Version="0.26.0.1" />
   </ItemGroup>
 
   <ItemGroup>
@@ -33,7 +31,6 @@
     <ProjectReference Include="..\LyndaCoursesDownloader.CourseExtractor\LyndaCoursesDownloader.CourseExtractor.csproj" />
     <ProjectReference Include="..\LyndaCoursesDownloader.DownloaderConfig\LyndaCoursesDownloader.DownloaderConfig.csproj" />
   </ItemGroup>
-
   <ItemGroup>
     <Reference Include="ShellProgressBar">
       <HintPath>Assemblies\ShellProgressBar.dll</HintPath>
