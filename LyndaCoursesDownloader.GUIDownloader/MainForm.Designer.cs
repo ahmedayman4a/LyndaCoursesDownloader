@@ -29,11 +29,7 @@
         private void InitializeComponent()
         {
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MainForm));
-            this.panelWithoutConfig = new System.Windows.Forms.Panel();
-            this.UC_CurrentOperationLabel = new LyndaCoursesDownloader.GUIDownloader.CurrentOperationLabel();
-            this.UC_IsLoggedin = new LyndaCoursesDownloader.GUIDownloader.IsLoggedinUserControl();
-            this.UC_CourseDownloaderStatus = new LyndaCoursesDownloader.GUIDownloader.CourseStatusUserControl();
-            this.UC_CourseExtractorStatus = new LyndaCoursesDownloader.GUIDownloader.CourseStatusUserControl();
+            this.panel = new System.Windows.Forms.Panel();
             this.progressBar = new System.Windows.Forms.ProgressBar();
             this.btnDownload = new System.Windows.Forms.Button();
             this.btnBrowse = new System.Windows.Forms.Button();
@@ -52,71 +48,40 @@
             this.label1 = new System.Windows.Forms.Label();
             this.folderBrowserDialog = new System.Windows.Forms.FolderBrowserDialog();
             this.backgroundWorker = new System.ComponentModel.BackgroundWorker();
-            this.panelWithoutConfig.SuspendLayout();
+            this.UC_IsLoggedin = new LyndaCoursesDownloader.GUIDownloader.IsLoggedinUserControl();
+            this.UC_CourseDownloaderStatus = new LyndaCoursesDownloader.GUIDownloader.CourseStatusUserControl();
+            this.UC_CourseExtractorStatus = new LyndaCoursesDownloader.GUIDownloader.CourseStatusUserControl();
+            this.lblCurrentOperation = new System.Windows.Forms.Label();
+            this.panel.SuspendLayout();
             this.SuspendLayout();
             // 
-            // panelWithoutConfig
+            // panel
             // 
-            this.panelWithoutConfig.Controls.Add(this.UC_CurrentOperationLabel);
-            this.panelWithoutConfig.Controls.Add(this.UC_IsLoggedin);
-            this.panelWithoutConfig.Controls.Add(this.UC_CourseDownloaderStatus);
-            this.panelWithoutConfig.Controls.Add(this.UC_CourseExtractorStatus);
-            this.panelWithoutConfig.Controls.Add(this.progressBar);
-            this.panelWithoutConfig.Controls.Add(this.btnDownload);
-            this.panelWithoutConfig.Controls.Add(this.btnBrowse);
-            this.panelWithoutConfig.Controls.Add(this.txtCourseDirectory);
-            this.panelWithoutConfig.Controls.Add(this.txtToken);
-            this.panelWithoutConfig.Controls.Add(this.txtCourseUrl);
-            this.panelWithoutConfig.Controls.Add(this.label3);
-            this.panelWithoutConfig.Controls.Add(this.cmboxQuality);
-            this.panelWithoutConfig.Controls.Add(this.cmboxBrowser);
-            this.panelWithoutConfig.Controls.Add(this.label10);
-            this.panelWithoutConfig.Controls.Add(this.label8);
-            this.panelWithoutConfig.Controls.Add(this.label6);
-            this.panelWithoutConfig.Controls.Add(this.label5);
-            this.panelWithoutConfig.Controls.Add(this.label4);
-            this.panelWithoutConfig.Controls.Add(this.label2);
-            this.panelWithoutConfig.Controls.Add(this.label1);
-            this.panelWithoutConfig.ForeColor = System.Drawing.Color.White;
-            this.panelWithoutConfig.Location = new System.Drawing.Point(12, 12);
-            this.panelWithoutConfig.Name = "panelWithoutConfig";
-            this.panelWithoutConfig.Size = new System.Drawing.Size(666, 375);
-            this.panelWithoutConfig.TabIndex = 0;
-            // 
-            // UC_CurrentOperationLabel
-            // 
-            this.UC_CurrentOperationLabel.BackColor = System.Drawing.Color.Black;
-            this.UC_CurrentOperationLabel.Location = new System.Drawing.Point(3, 287);
-            this.UC_CurrentOperationLabel.Name = "UC_CurrentOperationLabel";
-            this.UC_CurrentOperationLabel.Size = new System.Drawing.Size(223, 33);
-            this.UC_CurrentOperationLabel.TabIndex = 7;
-            // 
-            // UC_IsLoggedin
-            // 
-            this.UC_IsLoggedin.BackColor = System.Drawing.Color.Black;
-            this.UC_IsLoggedin.IsLoggedin = false;
-            this.UC_IsLoggedin.Location = new System.Drawing.Point(103, 249);
-            this.UC_IsLoggedin.Name = "UC_IsLoggedin";
-            this.UC_IsLoggedin.Size = new System.Drawing.Size(37, 27);
-            this.UC_IsLoggedin.TabIndex = 6;
-            // 
-            // UC_CourseDownloaderStatus
-            // 
-            this.UC_CourseDownloaderStatus.BackColor = System.Drawing.Color.Black;
-            this.UC_CourseDownloaderStatus.Location = new System.Drawing.Point(545, 249);
-            this.UC_CourseDownloaderStatus.Name = "UC_CourseDownloaderStatus";
-            this.UC_CourseDownloaderStatus.Size = new System.Drawing.Size(105, 29);
-            this.UC_CourseDownloaderStatus.Status = LyndaCoursesDownloader.GUIDownloader.CourseStatus.NotRunning;
-            this.UC_CourseDownloaderStatus.TabIndex = 5;
-            // 
-            // UC_CourseExtractorStatus
-            // 
-            this.UC_CourseExtractorStatus.BackColor = System.Drawing.Color.Black;
-            this.UC_CourseExtractorStatus.Location = new System.Drawing.Point(284, 249);
-            this.UC_CourseExtractorStatus.Name = "UC_CourseExtractorStatus";
-            this.UC_CourseExtractorStatus.Size = new System.Drawing.Size(105, 29);
-            this.UC_CourseExtractorStatus.Status = LyndaCoursesDownloader.GUIDownloader.CourseStatus.NotRunning;
-            this.UC_CourseExtractorStatus.TabIndex = 5;
+            this.panel.Controls.Add(this.lblCurrentOperation);
+            this.panel.Controls.Add(this.UC_IsLoggedin);
+            this.panel.Controls.Add(this.UC_CourseDownloaderStatus);
+            this.panel.Controls.Add(this.UC_CourseExtractorStatus);
+            this.panel.Controls.Add(this.progressBar);
+            this.panel.Controls.Add(this.btnDownload);
+            this.panel.Controls.Add(this.btnBrowse);
+            this.panel.Controls.Add(this.txtCourseDirectory);
+            this.panel.Controls.Add(this.txtToken);
+            this.panel.Controls.Add(this.txtCourseUrl);
+            this.panel.Controls.Add(this.label3);
+            this.panel.Controls.Add(this.cmboxQuality);
+            this.panel.Controls.Add(this.cmboxBrowser);
+            this.panel.Controls.Add(this.label10);
+            this.panel.Controls.Add(this.label8);
+            this.panel.Controls.Add(this.label6);
+            this.panel.Controls.Add(this.label5);
+            this.panel.Controls.Add(this.label4);
+            this.panel.Controls.Add(this.label2);
+            this.panel.Controls.Add(this.label1);
+            this.panel.ForeColor = System.Drawing.Color.White;
+            this.panel.Location = new System.Drawing.Point(12, 12);
+            this.panel.Name = "panel";
+            this.panel.Size = new System.Drawing.Size(666, 375);
+            this.panel.TabIndex = 0;
             // 
             // progressBar
             // 
@@ -307,29 +272,74 @@
             // 
             // backgroundWorker
             // 
+            this.backgroundWorker.WorkerSupportsCancellation = true;
             this.backgroundWorker.DoWork += new System.ComponentModel.DoWorkEventHandler(this.backgroundWorker_DoWork);
+            this.backgroundWorker.RunWorkerCompleted += new System.ComponentModel.RunWorkerCompletedEventHandler(this.backgroundWorker_RunWorkerCompleted);
+            // 
+            // UC_IsLoggedin
+            // 
+            this.UC_IsLoggedin.BackColor = System.Drawing.Color.Black;
+            this.UC_IsLoggedin.IsLoggedin = false;
+            this.UC_IsLoggedin.Location = new System.Drawing.Point(103, 249);
+            this.UC_IsLoggedin.Name = "UC_IsLoggedin";
+            this.UC_IsLoggedin.Size = new System.Drawing.Size(37, 27);
+            this.UC_IsLoggedin.TabIndex = 6;
+            // 
+            // UC_CourseDownloaderStatus
+            // 
+            this.UC_CourseDownloaderStatus.BackColor = System.Drawing.Color.Black;
+            this.UC_CourseDownloaderStatus.Location = new System.Drawing.Point(545, 249);
+            this.UC_CourseDownloaderStatus.Name = "UC_CourseDownloaderStatus";
+            this.UC_CourseDownloaderStatus.Size = new System.Drawing.Size(105, 29);
+            this.UC_CourseDownloaderStatus.Status = LyndaCoursesDownloader.GUIDownloader.CourseStatus.NotRunning;
+            this.UC_CourseDownloaderStatus.TabIndex = 5;
+            // 
+            // UC_CourseExtractorStatus
+            // 
+            this.UC_CourseExtractorStatus.BackColor = System.Drawing.Color.Black;
+            this.UC_CourseExtractorStatus.Location = new System.Drawing.Point(284, 249);
+            this.UC_CourseExtractorStatus.Name = "UC_CourseExtractorStatus";
+            this.UC_CourseExtractorStatus.Size = new System.Drawing.Size(105, 29);
+            this.UC_CourseExtractorStatus.Status = LyndaCoursesDownloader.GUIDownloader.CourseStatus.NotRunning;
+            this.UC_CourseExtractorStatus.TabIndex = 5;
+            // 
+            // lblCurrentOperation
+            // 
+            this.lblCurrentOperation.Font = new System.Drawing.Font("Barlow Condensed", 20.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.lblCurrentOperation.ForeColor = System.Drawing.Color.Gold;
+            this.lblCurrentOperation.Location = new System.Drawing.Point(20, 287);
+            this.lblCurrentOperation.Name = "lblCurrentOperation";
+            this.lblCurrentOperation.Size = new System.Drawing.Size(630, 33);
+            this.lblCurrentOperation.TabIndex = 8;
+            this.lblCurrentOperation.Text = "Getting input from user";
+            this.lblCurrentOperation.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             // 
             // MainForm
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
-            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            this.AutoScaleDimensions = new System.Drawing.SizeF(96F, 96F);
+            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Dpi;
             this.BackColor = System.Drawing.Color.Black;
             this.ClientSize = new System.Drawing.Size(693, 396);
-            this.Controls.Add(this.panelWithoutConfig);
+            this.Controls.Add(this.panel);
             this.ForeColor = System.Drawing.Color.White;
+            this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
+            this.MaximizeBox = false;
             this.Name = "MainForm";
-            this.Text = "LyndaCoursesDownloader";
+            this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
+            this.Text = "LyndaCoursesDownloader - v0.3.2";
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.DownloaderForm_FormClosing);
-            this.panelWithoutConfig.ResumeLayout(false);
-            this.panelWithoutConfig.PerformLayout();
+            this.Load += new System.EventHandler(this.MainForm_Load);
+            this.Shown += new System.EventHandler(this.MainForm_Shown);
+            this.panel.ResumeLayout(false);
+            this.panel.PerformLayout();
             this.ResumeLayout(false);
 
         }
 
         #endregion
 
-        private System.Windows.Forms.Panel panelWithoutConfig;
+        private System.Windows.Forms.Panel panel;
         private System.Windows.Forms.ComboBox cmboxBrowser;
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.Label label2;
@@ -351,7 +361,7 @@
         private IsLoggedinUserControl UC_IsLoggedin;
         private System.ComponentModel.BackgroundWorker backgroundWorker;
         private System.Windows.Forms.TextBox txtCourseUrl;
-        private CurrentOperationLabel UC_CurrentOperationLabel;
+        private System.Windows.Forms.Label lblCurrentOperation;
     }
 }
 
