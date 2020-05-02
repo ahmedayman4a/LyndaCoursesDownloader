@@ -1,10 +1,8 @@
-﻿using NLog;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using System;
 using System.Windows.Forms;
-using LyndaCoursesDownloader.CourseElements;
+using LyndaCoursesDownloader.DownloaderConfig;
+using Serilog;
+using Squirrel;
 
 namespace LyndaCoursesDownloader.GUIDownloader
 {
@@ -16,17 +14,31 @@ namespace LyndaCoursesDownloader.GUIDownloader
         [STAThread]
         static void Main()
         {
+            AppDomain.CurrentDomain.UnhandledException += AllUnhandledExceptions;
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-            var config = new NLog.Config.LoggingConfiguration();
-            // Targets where to log to: File
-            var logfile = new NLog.Targets.FileTarget("logfile") { FileName = "logs.txt" };
-            config.AddRule(LogLevel.Info, LogLevel.Fatal, logfile);
-
-            // Apply config           
-            LogManager.Configuration = config;
-
+            Log.Logger = new LoggerConfiguration()
+                .MinimumLevel.Debug()
+                .WriteTo.File("./logs/log.txt", rollingInterval: RollingInterval.Day, retainedFileCountLimit: 10)
+                .CreateLogger();
+            using (var mgr = new UpdateManager(@"G:\LyndaCoursesDownloaderReleases\LyndaCoursesDownloader_files\Releases"))
+            {
+                SquirrelAwareApp.HandleEvents(
+                  onInitialInstall: v => mgr.CreateShortcutForThisExe(),
+                  onAppUpdate: v => mgr.CreateShortcutForThisExe(),
+                  onAppUninstall: v => mgr.RemoveShortcutForThisExe());
+            }
+            Application.SetUnhandledExceptionMode(UnhandledExceptionMode.ThrowException);
+            Config.Restore();
             Application.Run(new MainForm());
+        }
+
+        private static void AllUnhandledExceptions(object sender, UnhandledExceptionEventArgs e)
+        {
+            var ex = (Exception)e.ExceptionObject;
+            Log.Error(ex, "Unknown error occured");
+
+            Environment.Exit(System.Runtime.InteropServices.Marshal.GetHRForException(ex));
         }
     }
 }
