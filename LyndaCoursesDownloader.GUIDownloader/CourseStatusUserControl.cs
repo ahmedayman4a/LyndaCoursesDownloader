@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using System.Drawing.Text;
 
 namespace LyndaCoursesDownloader.GUIDownloader
 {
@@ -39,6 +40,10 @@ namespace LyndaCoursesDownloader.GUIDownloader
                     case CourseStatus.Finished:
                         lblCourseStatus.Text = value.ToString();
                         lblCourseStatus.BackColor = Color.DarkGreen;
+                        break;
+                    case CourseStatus.Failed:
+                        lblCourseStatus.Text = value.ToString();
+                        lblCourseStatus.BackColor = Color.DarkRed;
                         break;
                 }
                 _status = value;
