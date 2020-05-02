@@ -31,11 +31,11 @@
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(DownloaderForm));
             this.progressBarTotal = new System.Windows.Forms.ProgressBar();
             this.label5 = new System.Windows.Forms.Label();
-            this.label1 = new System.Windows.Forms.Label();
+            this.lblDownloadingVideo = new System.Windows.Forms.Label();
             this.progressBarVideo = new System.Windows.Forms.ProgressBar();
             this.flowLayoutPanel1 = new System.Windows.Forms.FlowLayoutPanel();
-            this.lblPercentage = new System.Windows.Forms.Label();
             this.lblVideo = new System.Windows.Forms.Label();
+            this.lblPercentage = new System.Windows.Forms.Label();
             this.lblTotal = new System.Windows.Forms.Label();
             this.backgroundWorker = new System.ComponentModel.BackgroundWorker();
             this.flowLayoutPanel1.SuspendLayout();
@@ -59,16 +59,16 @@
             this.label5.TabIndex = 5;
             this.label5.Text = "Total Progress :";
             // 
-            // label1
+            // lblDownloadingVideo
             // 
-            this.label1.AutoSize = true;
-            this.label1.Font = new System.Drawing.Font("Barlow Condensed", 15.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label1.Location = new System.Drawing.Point(0, 0);
-            this.label1.Margin = new System.Windows.Forms.Padding(0);
-            this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(157, 27);
-            this.label1.TabIndex = 5;
-            this.label1.Text = "Downloading Video :";
+            this.lblDownloadingVideo.AutoSize = true;
+            this.lblDownloadingVideo.Font = new System.Drawing.Font("Barlow Condensed", 15.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.lblDownloadingVideo.Location = new System.Drawing.Point(0, 0);
+            this.lblDownloadingVideo.Margin = new System.Windows.Forms.Padding(0);
+            this.lblDownloadingVideo.Name = "lblDownloadingVideo";
+            this.lblDownloadingVideo.Size = new System.Drawing.Size(157, 27);
+            this.lblDownloadingVideo.TabIndex = 5;
+            this.lblDownloadingVideo.Text = "Downloading Video :";
             // 
             // progressBarVideo
             // 
@@ -80,7 +80,7 @@
             // flowLayoutPanel1
             // 
             this.flowLayoutPanel1.AutoSize = true;
-            this.flowLayoutPanel1.Controls.Add(this.label1);
+            this.flowLayoutPanel1.Controls.Add(this.lblDownloadingVideo);
             this.flowLayoutPanel1.Controls.Add(this.lblVideo);
             this.flowLayoutPanel1.Controls.Add(this.progressBarVideo);
             this.flowLayoutPanel1.Controls.Add(this.lblPercentage);
@@ -90,19 +90,8 @@
             this.flowLayoutPanel1.Location = new System.Drawing.Point(4, 12);
             this.flowLayoutPanel1.MaximumSize = new System.Drawing.Size(640, 0);
             this.flowLayoutPanel1.Name = "flowLayoutPanel1";
-            this.flowLayoutPanel1.Size = new System.Drawing.Size(640, 162);
+            this.flowLayoutPanel1.Size = new System.Drawing.Size(640, 155);
             this.flowLayoutPanel1.TabIndex = 7;
-            // 
-            // lblPercentage
-            // 
-            this.lblPercentage.AutoSize = true;
-            this.lblPercentage.Font = new System.Drawing.Font("Barlow Condensed", 15.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.lblPercentage.Location = new System.Drawing.Point(588, 34);
-            this.lblPercentage.Margin = new System.Windows.Forms.Padding(0, 7, 0, 0);
-            this.lblPercentage.Name = "lblPercentage";
-            this.lblPercentage.Size = new System.Drawing.Size(37, 27);
-            this.lblPercentage.TabIndex = 5;
-            this.lblPercentage.Text = "0%";
             // 
             // lblVideo
             // 
@@ -114,6 +103,17 @@
             this.lblVideo.Size = new System.Drawing.Size(279, 27);
             this.lblVideo.TabIndex = 7;
             this.lblVideo.Text = "[Video Name] in Chapter [Chapter Id]";
+            // 
+            // lblPercentage
+            // 
+            this.lblPercentage.AutoSize = true;
+            this.lblPercentage.Font = new System.Drawing.Font("Barlow Condensed", 15.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.lblPercentage.Location = new System.Drawing.Point(588, 34);
+            this.lblPercentage.Margin = new System.Windows.Forms.Padding(0, 7, 0, 0);
+            this.lblPercentage.Name = "lblPercentage";
+            this.lblPercentage.Size = new System.Drawing.Size(37, 27);
+            this.lblPercentage.TabIndex = 5;
+            this.lblPercentage.Text = "0%";
             // 
             // lblTotal
             // 
@@ -128,7 +128,9 @@
             // 
             // backgroundWorker
             // 
+            this.backgroundWorker.WorkerSupportsCancellation = true;
             this.backgroundWorker.DoWork += new System.ComponentModel.DoWorkEventHandler(this.backgroundWorker_DoWork);
+            this.backgroundWorker.RunWorkerCompleted += new System.ComponentModel.RunWorkerCompletedEventHandler(this.backgroundWorker_RunWorkerCompleted);
             // 
             // DownloaderForm
             // 
@@ -136,11 +138,14 @@
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.AutoSize = true;
             this.BackColor = System.Drawing.Color.Black;
-            this.ClientSize = new System.Drawing.Size(650, 179);
+            this.ClientSize = new System.Drawing.Size(650, 171);
             this.Controls.Add(this.flowLayoutPanel1);
             this.ForeColor = System.Drawing.Color.White;
+            this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
+            this.MaximizeBox = false;
             this.Name = "DownloaderForm";
+            this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "Downloading [Course Name]";
             this.Load += new System.EventHandler(this.DownloaderForm_Load);
             this.flowLayoutPanel1.ResumeLayout(false);
@@ -154,7 +159,7 @@
 
         private System.Windows.Forms.ProgressBar progressBarTotal;
         private System.Windows.Forms.Label label5;
-        private System.Windows.Forms.Label label1;
+        private System.Windows.Forms.Label lblDownloadingVideo;
         private System.Windows.Forms.ProgressBar progressBarVideo;
         private System.Windows.Forms.FlowLayoutPanel flowLayoutPanel1;
         private System.Windows.Forms.Label lblPercentage;
