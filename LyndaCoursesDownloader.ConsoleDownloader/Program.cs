@@ -99,22 +99,19 @@ namespace LyndaCoursesDownloader.ConsoleDownloader
 
                     string courseUrl = TUI.GetCourseUrl();
                     Console.WriteLine(TUI.continueGlyph + "Logging in...");
-                    var extractor = new Extractor();
-                    var initializationTask = extractor.InitializeDriver(config.Browser);
-                    initializationTask.Start();
-
+                    Extractor.InitializeDriver(config.Browser);
                     try
                     {
-                        extractor.Login(config.AuthenticationToken, courseUrl, initializationTask).Wait();
+                        Extractor.Login(config.AuthenticationToken, courseUrl).Wait();
                         Console.WriteLine(TUI.continueGlyph + "Logged in successfully");
                         Console.WriteLine(TUI.endGlyph + "Intializing Course Extractor");
                         Course course = new Course();
                         int videosCount;
-                        extractor.ExtractCourseStructure(out videosCount);
+                        Extractor.ExtractCourseStructure(out videosCount);
                         using (pbarExtractor = new ProgressBar(videosCount, "Extracting Course Links - This will take some time", optionPbarExtractor))
                         {
-                            extractor.ExtractionProgressChanged += Extractor_ExtractionProgressChanged;
-                            course = extractor.ExtractCourse(config.Quality);
+                            Extractor.ExtractionProgressChanged += Extractor_ExtractionProgressChanged;
+                            course = Extractor.ExtractCourse(config.Quality);
                         }
 
                         CourseDownloader.DownloadCourse(course, config.CourseDirectory);
@@ -172,10 +169,8 @@ namespace LyndaCoursesDownloader.ConsoleDownloader
             {
                 try
                 {
-                    var extractor = new Extractor();
                     Browser selectedBrowser = TUI.GetBrowser();
-                    var initializationTask = extractor.InitializeDriver(selectedBrowser);
-                    initializationTask.Start();
+                    Extractor.InitializeDriver(selectedBrowser);
                     string courseUrl = TUI.GetCourseUrl();
 
                     while (true)
@@ -183,7 +178,7 @@ namespace LyndaCoursesDownloader.ConsoleDownloader
                         try
                         {
                             string token = TUI.GetLoginToken();
-                            var loginTask = extractor.Login(token, courseUrl, initializationTask);
+                            var loginTask = Extractor.Login(token, courseUrl);
                             var courseRootDirectory = TUI.GetPath();
                             var selectedQuality = TUI.GetQuality();
                             Console.WriteLine(TUI.continueGlyph + "Logging in...");
@@ -200,11 +195,11 @@ namespace LyndaCoursesDownloader.ConsoleDownloader
                             Console.WriteLine(TUI.continueGlyph + "Saved entries to config file");
                             Console.WriteLine(TUI.endGlyph + "Intializing Course Extractor...");
                             Course course = new Course();
-                            extractor.ExtractCourseStructure(out int videosCount);
+                            Extractor.ExtractCourseStructure(out int videosCount);
                             using (pbarExtractor = new ProgressBar(videosCount, "Extracting Course Links - This will take some time", optionPbarExtractor))
                             {
-                                extractor.ExtractionProgressChanged += Extractor_ExtractionProgressChanged;
-                                course = extractor.ExtractCourse(selectedQuality);
+                                Extractor.ExtractionProgressChanged += Extractor_ExtractionProgressChanged;
+                                course = Extractor.ExtractCourse(selectedQuality);
                             }
 
                             CourseDownloader.DownloadCourse(course, courseRootDirectory);
