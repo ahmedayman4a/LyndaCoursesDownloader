@@ -3,6 +3,7 @@ using LyndaCoursesDownloader.CourseContent;
 using LyndaCoursesDownloader.CourseElements;
 using OpenQA.Selenium;
 using OpenQA.Selenium.Support.UI;
+using Serilog;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -12,64 +13,50 @@ using System.Threading.Tasks;
 
 namespace LyndaCoursesDownloader.CourseExtractor
 {
-    public class Extractor
+    public static class Extractor
     {
         public delegate void ExtractionProgressChangedEventHandler();
-        public event ExtractionProgressChangedEventHandler ExtractionProgressChanged;
-        private static int NumberOfSessions = 1; // ability to set number of sessions in the future
-        private static Session[] Sessions = new Session[NumberOfSessions];
-        private static CoursePage coursePage;
-        private static List<Video> allVideos;
-        private static Browser SelectedBrowser;
-        private static Course course;
-        private const string noCaption = "<div class=\"jsonParseError\">SyntaxError: JSON.parse: expected property name or '}' at line 1 column 3 of the JSON data</div>";
-        private static object StatusLock = new object();
+        public static event ExtractionProgressChangedEventHandler ExtractionProgressChanged;
+        private static Session _session;
+        private static CoursePage _coursePage;
+        private static List<Video> _allVideos;
+        private static Course _course;
+        private static object _statusLock = new object();
+        private static Task _initializationTask;
 
-        public Task InitializeDriver(Browser selectedBrowser)
+        public static Task InitializeDriver(Browser selectedBrowser)
         {
-
-            SelectedBrowser = selectedBrowser;
-            return new Task(() =>
+            _initializationTask = new Task(() =>
             {
                 //KillDrivers();
                 switch (selectedBrowser)
                 {
                     case Browser.Firefox:
-                        Parallel.For(0, NumberOfSessions, (i) =>
-                        {
-                            Sessions[i] = new Session<CustomFirefox>();
-                        });
+                        _session = new Session<CustomFirefox>();
                         break;
                     case Browser.Chrome:
-                        Parallel.For(0, NumberOfSessions, (i) =>
-                        {
-                            Sessions[i] = new Session<CustomChrome>();
-                        });
+                        _session = new Session<CustomChrome>();
                         break;
                 }
-                Parallel.For(0, NumberOfSessions, (i) =>
-                {
-                    Sessions[i].NavigateTo<AboutPage>("https://www.lynda.com/aboutus/"); //used about page for quicker loading
-                });
-                Sessions[0].Driver.Manage().Cookies.DeleteAllCookies();
+                _session.NavigateTo<AboutPage>("https://www.lynda.com/aboutus/"); //used about page for quicker loading
+                _session.Driver.Manage().Cookies.DeleteAllCookies();
             });
+            _initializationTask.Start();
+            return _initializationTask;
         }
 
-        public Task Login(string token, string courseUrl, Task initializationTask)
+        public static Task Login(string token, string courseUrl)
         {
-            return initializationTask.ContinueWith((t) =>
+            return _initializationTask.ContinueWith((t) =>
             {
-                Sessions[0].Driver.Manage().Cookies.AddCookie(new Cookie("token", token, "www.lynda.com", "/", new DateTime(2222, 1, 1)));
+                _session.Driver.Manage().Cookies.AddCookie(new Cookie("token", token, "www.lynda.com", "/", new DateTime(2222, 1, 1)));
 
-                coursePage = Sessions[0].NavigateTo<CoursePage>(courseUrl);
-                if (Sessions[0].Driver.PageSource.Contains("submenu-account"))
+                _coursePage = _session.NavigateTo<CoursePage>(courseUrl);
+                if (_session.Driver.PageSource.Contains("submenu-account"))
                 {
-                    Parallel.For(1, NumberOfSessions, (i) =>
-                    {
-                        Sessions[i].Driver.Manage().Cookies.DeleteAllCookies();
-                        Sessions[i].Driver.Manage().Cookies.AddCookie(new Cookie("token", token, "www.lynda.com", "/", new DateTime(2222, 1, 1)));
-                    });
-                    Sessions[0].NavigateTo<CoursePage>(courseUrl);
+                    _session.Driver.Manage().Cookies.DeleteAllCookies();
+                    _session.Driver.Manage().Cookies.AddCookie(new Cookie("token", token, "www.lynda.com", "/", new DateTime(2222, 1, 1)));
+                    _session.NavigateTo<CoursePage>(courseUrl);
                 }
                 else
                 {
@@ -78,21 +65,21 @@ namespace LyndaCoursesDownloader.CourseExtractor
             });
         }
 
-        public void ExtractCourseStructure(out int numberOfVideos)
+        public static void ExtractCourseStructure(out int numberOfVideos)
         {
-            course = ExtractCourseStructure();
-            allVideos = course.Chapters.SelectMany(ch => ch.Videos).ToList();
-            numberOfVideos = allVideos.Count;
+            _course = ExtractCourseStructure();
+            _allVideos = _course.Chapters.SelectMany(ch => ch.Videos).ToList();
+            numberOfVideos = _allVideos.Count;
         }
         private static Course ExtractCourseStructure()
         {
             Course course = new Course()
             {
-                Name = coursePage.CourseName,
+                Name = _coursePage.CourseName,
                 Chapters = new List<Chapter>()
             };
             int i = 1;
-            foreach (var chapterBlock in coursePage.ChapterBlocks)
+            foreach (var chapterBlock in _coursePage.ChapterBlocks)
             {
                 chapterBlock.ChapterId = i;
                 course.Chapters.Add(chapterBlock);
@@ -102,67 +89,63 @@ namespace LyndaCoursesDownloader.CourseExtractor
             return course;
         }
 
-        public Course ExtractCourse(Quality selectedQuality)
+        public static Course ExtractCourse(Quality selectedQuality)
         {
-            Parallel.ForEach(Sessions, (session) =>
+            bool _isFirstVideo = true;
+            WebDriverWait wait = new WebDriverWait(_session.Driver, TimeSpan.FromSeconds(30));
+            Video video = _allVideos.GetAvailableVideo(_statusLock);
+            _session.NavigateTo<CoursePage>(video.VideoUrl);
+            Video nextVideo = _allVideos.GetAvailableVideo(_statusLock);
+            while (!(video is null))
             {
-                bool _isFirstVideo = true;
-                WebDriverWait wait = new WebDriverWait(session.Driver, TimeSpan.FromSeconds(30));
-                Video video = allVideos.GetAvailableVideo(StatusLock);
-                session.NavigateTo<CoursePage>(video.VideoUrl);
-                Video nextVideo = allVideos.GetAvailableVideo(StatusLock);
-                while (!(video is null))
+                if (nextVideo is null)
                 {
-                    if (nextVideo is null)
+                    if (_isFirstVideo)
                     {
-                        if (_isFirstVideo)
-                        {
-                            _isFirstVideo = false;
-                            ExtractVideo(video, session, wait, selectedQuality);
-                        }
-                        else
-                        {
-                            ExtractVideo(video, session, wait);
-                        }
-                        return;
+                        _isFirstVideo = false;
+                        ExtractVideo(video, wait, selectedQuality);
                     }
                     else
                     {
-                        if (_isFirstVideo)
-                        {
-                            _isFirstVideo = false;
-                            ExtractVideo(video, session, wait, selectedQuality, nextVideo);
-                        }
-                        else
-                        {
-                            ExtractVideo(video, session, wait, null, nextVideo);
-                        }
-                        video = nextVideo;
-                        nextVideo = allVideos.GetAvailableVideo(StatusLock);
+                        ExtractVideo(video, wait);
                     }
-
-
+                    break;
                 }
-            });
+                else
+                {
+                    if (_isFirstVideo)
+                    {
+                        _isFirstVideo = false;
+                        ExtractVideo(video, wait, selectedQuality, nextVideo);
+                    }
+                    else
+                    {
+                        ExtractVideo(video, wait, null, nextVideo);
+                    }
+                    video = nextVideo;
+                    nextVideo = _allVideos.GetAvailableVideo(_statusLock);
+                }
 
+            }
 
-            return course;
+            return _course;
         }
 
-        private void ExtractVideo(Video video, Session session, WebDriverWait wait, Quality? selectedQuality = null, Video nextVideo = null)
+        private static void ExtractVideo(Video video, WebDriverWait wait, Quality? selectedQuality = null, Video nextVideo = null)
         {
-            try
+            _session.Driver.SwitchTo().Window(_session.Driver.WindowHandles.First());
+            if (!(nextVideo is null))
             {
-                session.Driver.SwitchTo().Window(session.Driver.WindowHandles.First());
-                if (!(nextVideo is null))
-                {
-                    session.ExecuteJavaScript($"window.open('{nextVideo.VideoUrl}','_blank');");
-                    session.Driver.SwitchTo().Window(session.Driver.WindowHandles.First());
-                }
-                var videoBlock = session.CurrentPage<CoursePage>().VideoBlock;
+                _session.ExecuteJavaScript($"window.open('{nextVideo.VideoUrl}','_blank');");
+                _session.Driver.SwitchTo().Window(_session.Driver.WindowHandles.First());
+            }
+            Retry.Do(() =>
+            {
+                var videoBlock = _session.CurrentPage<CoursePage>().VideoBlock;
                 wait.Until(ExpectedConditions.ElementToBeClickable(By.Id("banner-play")));
                 videoBlock.VideoId = video.Id;
                 videoBlock.WatchVideoButton.Click();
+
                 if (!(selectedQuality is null))
                 {
                     wait.Until(ExpectedConditions.ElementToBeClickable(By.Id("player-settings")));
@@ -180,32 +163,32 @@ namespace LyndaCoursesDownloader.CourseExtractor
                             break;
                     }
                 }
-
-
                 video.VideoDownloadUrl = videoBlock.VideoDownloadUrl;
-                var captionPage = session.NavigateTo<CaptionsPage>(videoBlock.CaptionElement.GetAttribute("src"));
-                //Check if there is a caption for the video
-                //wait.Until(ExpectedConditions.ElementIsVisible(By.TagName("")));
-
+                var captionPage = _session.NavigateTo<CaptionsPage>(videoBlock.CaptionElement.GetAttribute("src"));
                 video.CaptionText = captionPage.CaptionText;
-                session.Driver.Close();
+                _session.Driver.Close();
                 ExtractionProgressChanged();
-                Monitor.Enter(StatusLock);
+                Monitor.Enter(_statusLock);
                 video.CurrentVideoStatus = CurrentStatus.Finished;
-                Monitor.Exit(StatusLock);
-            }
-            catch (WebDriverException)
+                Monitor.Exit(_statusLock);
+            },
+            exceptionMessage: "An error occured while extracting video with title " + video.Name,
+            actionOnError: () =>
             {
-                session.NavigateTo<CoursePage>(video.VideoUrl);
-                // Don't pass next video because its tab is already created
-                ExtractVideo(video, session, wait, selectedQuality);
-            }
+                _session.NavigateTo<CoursePage>(video.VideoUrl);
+            });
         }
         public static void KillDrivers()
         {
-            if (!(Sessions[0] is null))
+            if (!(_session is null))
             {
-                Sessions[0].Driver.Quit();
+                _session.Driver.Quit();
+                _session = null;
+                _coursePage = null;
+                _allVideos = null;
+                _course = null;
+                _initializationTask = null;
+                _statusLock = new object();
             }
             Process[] geckodriverProcesses = Process.GetProcessesByName("geckodriver");
             foreach (var geckodriverProcess in geckodriverProcesses)
@@ -218,6 +201,23 @@ namespace LyndaCoursesDownloader.CourseExtractor
                 chromedriverProcess.KillTree();
             }
         }
-
+        public static void CloseTabs()
+        {
+            var windows = _session.Driver.WindowHandles;
+            int windowsLeft = windows.Count;
+            foreach (var window in windows)
+            {
+                if (windowsLeft == 1)
+                {
+                    return;
+                }
+                else
+                {
+                    _session.Driver.SwitchTo().Window(window);
+                    _session.Driver.Close();
+                    windowsLeft--;
+                }
+            }
+        }
     }
 }
