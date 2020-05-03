@@ -32,7 +32,7 @@ namespace LyndaCoursesDownloader.GUIDownloader
             _courseRootDirectory = courseRootDirectory;
             InitializeComponent();
             Text = "Downloading " + _course.Name + " course";
-            foreach (var control in Controls)
+            foreach (var control in flowLayoutPanel.Controls)
             {
                 switch (control)
                 {

@@ -22,7 +22,7 @@ namespace LyndaCoursesDownloader.GUIDownloader
             _updateManager = updateManager;
             InitializeComponent();
             lblMessage.Text = message;
-            foreach (var control in Controls)
+            foreach (var control in flowLayoutPanel.Controls)
             {
                 switch (control)
                 {
