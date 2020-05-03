@@ -16,6 +16,7 @@ using System.Diagnostics;
 using Squirrel;
 using System.Drawing.Text;
 using System.Drawing;
+using System.Threading.Tasks;
 
 namespace LyndaCoursesDownloader.GUIDownloader
 {
@@ -37,7 +38,7 @@ namespace LyndaCoursesDownloader.GUIDownloader
             cmboxBrowser.SelectedIndex = 0;
             cmboxQuality.SelectedIndex = 0;
             Config config;
-            
+
             if (File.Exists("./Config.json"))
             {
                 try
@@ -125,7 +126,7 @@ namespace LyndaCoursesDownloader.GUIDownloader
             {
                 return;
             }
-            var downloaderForm = new DownloaderForm(course, new DirectoryInfo(txtCourseDirectory.Text),_font);
+            var downloaderForm = new DownloaderForm(course, new DirectoryInfo(txtCourseDirectory.Text), _font);
             UpdateUI(() => UC_CourseDownloaderStatus.Status = CourseStatus.Running);
             try
             {
@@ -338,43 +339,51 @@ namespace LyndaCoursesDownloader.GUIDownloader
             Extractor.ExtractionProgressChanged -= Extractor_ExtractionProgressChanged;
             EnableControls(true);
         }
-        private async void MainForm_Shown(object sender, EventArgs e)
+        private void MainForm_Shown(object sender, EventArgs e)
         {
             bool restartApp = false;
-            using (var updateManager = new UpdateManager(@"G:\LyndaCoursesDownloaderReleases\LyndaCoursesDownloader_files\Releases"))
+            Task.Run(async () =>
             {
-                Log.Information("Checking for updates...");
                 try
                 {
-                    var updateInfo = await updateManager.CheckForUpdate();
-                    if (updateInfo.ReleasesToApply.Any())
+                    using (var githubUpdateManager = UpdateManager.GitHubUpdateManager("https://github.com/ahmedayman4a/LyndaCoursesDownloader.UpdateManager.Prerelease"))
+                    using(var updateManager = await githubUpdateManager)
                     {
-                        var versionCount = updateInfo.ReleasesToApply.Count;
-                        Log.Information($"{versionCount} update(s) found.");
+                        Log.Information("Checking for updates...");
+                        var updateInfo = await updateManager.CheckForUpdate();
+                        if (updateInfo.ReleasesToApply.Any())
+                        {
+                            var versionCount = updateInfo.ReleasesToApply.Count;
+                            Log.Information($"{versionCount} update(s) found.");
 
-                        var versionWord = versionCount > 1 ? "versions" : "version";
-                        var message = new StringBuilder().AppendLine($"App is {versionCount} {versionWord} behind.")
-                            .AppendLine("If you choose to update, the app will automatically restart after the update.")
-                            .AppendLine($"Would you like to update?")
-                            .ToString();
-                        UpdaterForm updaterForm = new UpdaterForm(message, updateManager,_font);
-                        updaterForm.ShowDialog();
-                        restartApp = updaterForm.isUpdated;
-                    }
-                    else
-                    {
-                        Log.Information("No updates detected.");
+                            var versionWord = versionCount > 1 ? "versions" : "version";
+                            var message = new StringBuilder().AppendLine($"App is {versionCount} {versionWord} behind.")
+                                .AppendLine("If you choose to update, the app will automatically restart after the update.")
+                                .AppendLine($"Would you like to update?")
+                                .ToString();
+                            UpdaterForm updaterForm = new UpdaterForm(message, updateManager, _font);
+                            UpdateUI(() => updaterForm.ShowDialog());
+                            restartApp = updaterForm.isUpdated;
+                        }
+                        else
+                        {
+                            Log.Information("No updates detected.");
+                        }
                     }
                 }
                 catch (Exception ex)
                 {
                     Log.Error(ex, $"There was an issue during the update process! {ex.Message}");
                 }
-            }
-            if (restartApp)
+
+            }).ContinueWith(t =>
             {
-                UpdateManager.RestartApp();
-            }
+                if (restartApp)
+                {
+                    UpdateManager.RestartApp();
+                }
+            });
+
         }
 
         private void MainForm_Load(object sender, EventArgs e)
@@ -382,9 +391,10 @@ namespace LyndaCoursesDownloader.GUIDownloader
             var fontCollection = new PrivateFontCollection();
             fontCollection.AddFontFile("./fonts/Barlow.ttf");
             fontCollection.AddFontFile("./fonts/SegoeUI.ttf");
-            var fontBarlow16 = new Font(fontCollection.Families[0] ,16);
+            var fontBarlow16 = new Font(fontCollection.Families[0], 16);
             _font = fontBarlow16;
             var fontBarlow20 = new Font(fontCollection.Families[0], 20);
+            var fontBarlow12 = new Font(fontCollection.Families[0], 12);
             var fontSegoeUI12 = new Font(fontCollection.Families[1], 12);
             foreach (var control in panel.Controls)
             {
@@ -399,11 +409,15 @@ namespace LyndaCoursesDownloader.GUIDownloader
                     case TextBox txt:
                         txt.Font = fontSegoeUI12;
                         break;
+                    case ComboBox cmbox:
+                        cmbox.Font = fontBarlow12;
+                        break;
                     case UserControl uc:
                         (uc.Controls[0] as Label).Font = fontBarlow16;
                         break;
                 }
             }
+            btnBrowse.Font = fontBarlow12;
             lblCurrentOperation.Font = fontBarlow20;
         }
     }
