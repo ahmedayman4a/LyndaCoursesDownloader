@@ -15,6 +15,7 @@
     <Authors>ahmedayman4a</Authors>
     <Copyright>2020</Copyright>
     <Version>0.2.0</Version>
+    <AssemblyName>LyndaCoursesDownloader</AssemblyName>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
