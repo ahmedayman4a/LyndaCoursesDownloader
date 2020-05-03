@@ -26,11 +26,10 @@ namespace LyndaCoursesDownloader.GUIDownloader
         private int _videosCount = 0;
         private Font _font;
         private int _currentVideoIndex = 0;
+        private readonly PrivateFontCollection _fontCollection = new PrivateFontCollection();
         public MainForm()
         {
             InitializeComponent();
-            var version = System.Reflection.Assembly.GetExecutingAssembly().GetName().Version;
-            Text = "LyndaCoursesDownloader - v" + version;
             lblCurrentOperation.Text = "Waiting for input from user";
             UC_CourseExtractorStatus.Status = CourseStatus.NotRunning;
             UC_CourseDownloaderStatus.Status = CourseStatus.NotRunning;
@@ -341,13 +340,19 @@ namespace LyndaCoursesDownloader.GUIDownloader
         }
         private void MainForm_Shown(object sender, EventArgs e)
         {
+
+
+        }
+
+        private void CheckForUpdates()
+        {
             bool restartApp = false;
             Task.Run(async () =>
             {
                 try
                 {
                     using (var githubUpdateManager = UpdateManager.GitHubUpdateManager("https://github.com/ahmedayman4a/LyndaCoursesDownloader.UpdateManager.Prerelease"))
-                    using(var updateManager = await githubUpdateManager)
+                    using (var updateManager = await githubUpdateManager)
                     {
                         Log.Information("Checking for updates...");
                         var updateInfo = await updateManager.CheckForUpdate();
@@ -383,19 +388,19 @@ namespace LyndaCoursesDownloader.GUIDownloader
                     UpdateManager.RestartApp();
                 }
             });
-
         }
 
         private void MainForm_Load(object sender, EventArgs e)
         {
-            var fontCollection = new PrivateFontCollection();
-            fontCollection.AddFontFile("./fonts/Barlow.ttf");
-            fontCollection.AddFontFile("./fonts/SegoeUI.ttf");
-            var fontBarlow16 = new Font(fontCollection.Families[0], 16);
+            CheckForUpdates();
+
+            _fontCollection.AddFontFile("./fonts/Barlow.ttf");
+            _fontCollection.AddFontFile("./fonts/SegoeUI.ttf");
+            var fontBarlow16 = new Font(_fontCollection.Families[0], 16);
             _font = fontBarlow16;
-            var fontBarlow20 = new Font(fontCollection.Families[0], 20);
-            var fontBarlow12 = new Font(fontCollection.Families[0], 12);
-            var fontSegoeUI12 = new Font(fontCollection.Families[1], 12);
+            var fontBarlow20 = new Font(_fontCollection.Families[0], 20);
+            var fontBarlow12 = new Font(_fontCollection.Families[0], 12);
+            var fontSegoeUI12 = new Font(_fontCollection.Families[1], 12);
             foreach (var control in panel.Controls)
             {
                 switch (control)
