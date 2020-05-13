@@ -3,6 +3,7 @@ using LyndaCoursesDownloader.CourseExtractor;
 using LyndaCoursesDownloader.DownloaderConfig;
 using Newtonsoft.Json;
 using OpenQA.Selenium;
+using Serilog;
 using ShellProgressBar;
 using System;
 using System.IO;
@@ -12,6 +13,7 @@ namespace LyndaCoursesDownloader.ConsoleDownloader
     class Program
     {
         private static ProgressBar pbarExtractor;
+
         private static readonly ProgressBarOptions optionPbarExtractor = new ProgressBarOptions
         {
             ScrollChildrenIntoView = true,
@@ -22,17 +24,28 @@ namespace LyndaCoursesDownloader.ConsoleDownloader
         };
         static void Main(string[] args)
         {
+            AppDomain.CurrentDomain.UnhandledException += AllUnhandledExceptions;
+            AppDomain.CurrentDomain.ProcessExit += CurrentDomain_ProcessExit;
+            Log.Logger = new LoggerConfiguration()
+                .MinimumLevel.Debug()
+                .WriteTo.File("./logs/log.txt", rollingInterval: RollingInterval.Day, retainedFileCountLimit: 10)
+                .CreateLogger();
             Intro();
             Console.Title = "Lynda Courses Downloader";
-            AppDomain.CurrentDomain.ProcessExit += CurrentDomain_ProcessExit;
-            var config = new Config();
+            RunApp();
+
+            Console.WriteLine();
+            Console.ReadLine();
+        }
+
+        private static void RunApp()
+        {
             if (File.Exists("./Config.json"))
             {
                 Console.WriteLine(TUI.startGlyph + "Found a Config file");
                 try
                 {
-
-                    config = Config.FromJson(File.ReadAllText("./Config.json"));
+                    Config config = Config.FromJson(File.ReadAllText("./Config.json"));
                     Console.WriteLine(TUI.continueGlyph + "Data in config file : ");
                     Console.WriteLine(TUI.continueGlyph + "Browser : " + config.Browser);
                     Console.WriteLine(TUI.continueGlyph + "Quality to download in : " + config.Quality);
@@ -64,12 +77,6 @@ namespace LyndaCoursesDownloader.ConsoleDownloader
                 RunWithoutConfig();
 
             }
-
-
-
-
-            Console.WriteLine();
-            Console.ReadLine();
         }
 
         private static void Intro()
@@ -92,144 +99,147 @@ namespace LyndaCoursesDownloader.ConsoleDownloader
 
         private static void RunWithConfig(Config config)
         {
-            while (true)
+            string courseUrl = TUI.GetCourseUrl();
+            Log.Information("Logging in...");
+            Console.WriteLine(TUI.continueGlyph + "Logging in...");
+            try
             {
-                try
-                {
-
-                    string courseUrl = TUI.GetCourseUrl();
-                    Console.WriteLine(TUI.continueGlyph + "Logging in...");
-                    Extractor.InitializeDriver(config.Browser);
-                    try
-                    {
-                        Extractor.Login(config.AuthenticationToken, courseUrl).Wait();
-                        Console.WriteLine(TUI.continueGlyph + "Logged in successfully");
-                        Console.WriteLine(TUI.endGlyph + "Intializing Course Extractor");
-                        Course course = new Course();
-                        int videosCount;
-                        Extractor.ExtractCourseStructure(out videosCount);
-                        using (pbarExtractor = new ProgressBar(videosCount, "Extracting Course Links - This will take some time", optionPbarExtractor))
-                        {
-                            Extractor.ExtractionProgressChanged += Extractor_ExtractionProgressChanged;
-                            course = Extractor.ExtractCourse(config.Quality);
-                        }
-
-                        CourseDownloader.DownloadCourse(course, config.CourseDirectory);
-                        return;
-
-                    }
-                    catch (InvalidTokenException)
-                    {
-                        TUI.ShowError("The token you supplied is invalid - Login Failed");
-                        Console.WriteLine("Creating new config file");
-                        RunWithoutConfig();
-                        return;
-                    }
-                    catch (WebDriverException ex)
-                    {
-                        TUI.ShowError("An error occured in the driver : " + ex.Message);
-                        TUI.ShowError("Error details : " + ex.StackTrace);
-                        TUI.ShowError("Trying again...");
-                        RunWithConfig(config);
-                        return;
-                    }
-                    catch (Exception ex)
-                    {
-                        TUI.ShowError("An error occured while extracting the course data : " + ex.Message);
-                        TUI.ShowError("Error details : " + ex.StackTrace);
-                        TUI.ShowError("Trying again...");
-                        RunWithConfig(config);
-                        return;
-                    }
-
-
-                }
-                catch (WebDriverException ex)
-                {
-                    TUI.ShowError("An error occured in the driver : " + ex.Message);
-                    TUI.ShowError("Error details : " + ex.StackTrace);
-                    TUI.ShowError("Trying again...");
-                    RunWithConfig(config);
-                    return;
-                }
-                catch (Exception ex)
-                {
-                    TUI.ShowError("An error occured : " + ex.Message);
-                    TUI.ShowError("Error details : " + ex.StackTrace);
-                    RunWithConfig(config);
-                    return;
-                }
-
+                Extractor.InitializeDriver(config.Browser);
+                Extractor.Login(config.AuthenticationToken, courseUrl).Wait();
             }
+            catch (InvalidTokenException ex)
+            {
+                Log.Error(ex, "Failed to log in with course url : {0} and token of {1} characters", courseUrl, config.AuthenticationToken.Length);
+                TUI.ShowError("The token or the course url you provided is invalid. Please make sure you entered the right token and course url");
+                RunWithoutConfig();
+                return;
+            }
+            catch (Exception e) when (e.InnerException is InvalidTokenException ex)
+            {
+                Log.Error(ex, "Failed to log in with course url : {0} and token of {1} characters", courseUrl, config.AuthenticationToken.Length);
+                TUI.ShowError("The token or the course url you provided is invalid. Please make sure you entered the right token and course url");
+                RunWithoutConfig();
+                return;
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "Unknown Exception");
+                TUI.ShowError("Unknown Error occured - " + ex.Message);
+                RunWithoutConfig();
+                return;
+            }
+            Log.Information("Logged in successfully");
+            Console.WriteLine(TUI.continueGlyph + "Logged in successfully");
+            Log.Information("Intializing Course Extractor");
+            Console.WriteLine(TUI.endGlyph + "Intializing Course Extractor");
+            Course course = ExtractCourse(config);
+            if (course is null)
+            {
+                RunWithConfig(config);
+                return;
+            }
+            Log.Information("Course Extracted. Downloading...");
+            Console.WriteLine();
+            CourseDownloader.DownloadCourse(course, config.CourseDirectory);
         }
 
         private static void RunWithoutConfig()
         {
-            while (true)
+            Browser selectedBrowser = TUI.GetBrowser();
+            Extractor.InitializeDriver(selectedBrowser);
+            string courseUrl = TUI.GetCourseUrl();
+            string token = TUI.GetLoginToken();
+            var loginTask = Extractor.Login(token, courseUrl);
+            var courseRootDirectory = TUI.GetPath();
+            var selectedQuality = TUI.GetQuality();
+            Log.Information("Logging in...");
+            Console.WriteLine(TUI.continueGlyph + "Logging in...");
+            try
             {
-                try
-                {
-                    Browser selectedBrowser = TUI.GetBrowser();
-                    Extractor.InitializeDriver(selectedBrowser);
-                    string courseUrl = TUI.GetCourseUrl();
-
-                    while (true)
-                    {
-                        try
-                        {
-                            string token = TUI.GetLoginToken();
-                            var loginTask = Extractor.Login(token, courseUrl);
-                            var courseRootDirectory = TUI.GetPath();
-                            var selectedQuality = TUI.GetQuality();
-                            Console.WriteLine(TUI.continueGlyph + "Logging in...");
-                            loginTask.Wait();
-                            Console.WriteLine(TUI.continueGlyph + "Logged in successfully");
-                            Config config = new Config
-                            {
-                                AuthenticationToken = token,
-                                Browser = selectedBrowser,
-                                Quality = selectedQuality,
-                                CourseDirectory = courseRootDirectory
-                            };
-                            File.WriteAllText("./Config.json", config.ToJson());
-                            Console.WriteLine(TUI.continueGlyph + "Saved entries to config file");
-                            Console.WriteLine(TUI.endGlyph + "Intializing Course Extractor...");
-                            Course course = new Course();
-                            Extractor.ExtractCourseStructure(out int videosCount);
-                            using (pbarExtractor = new ProgressBar(videosCount, "Extracting Course Links - This will take some time", optionPbarExtractor))
-                            {
-                                Extractor.ExtractionProgressChanged += Extractor_ExtractionProgressChanged;
-                                course = Extractor.ExtractCourse(selectedQuality);
-                            }
-
-                            CourseDownloader.DownloadCourse(course, courseRootDirectory);
-                            return;
-                        }
-                        catch (InvalidTokenException)
-                        {
-                            TUI.ShowError("The token you supplied is invalid - Login Failed");
-                        }
-                    }
-                }
-
-
-
-                catch (WebDriverException ex)
-                {
-                    TUI.ShowError("An error occured in the driver : " + ex.Message);
-                    TUI.ShowError("Error details : " + ex.StackTrace);
-                    TUI.ShowError("Trying again...");
-                    RunWithoutConfig();
-                    return;
-                }
-                catch (Exception ex)
-                {
-                    TUI.ShowError("An error occured : " + ex.Message);
-                    TUI.ShowError("Error details : " + ex.StackTrace);
-                    RunWithoutConfig();
-                    return;
-                }
+                loginTask.Wait();
             }
+            catch (InvalidTokenException ex)
+            {
+                Log.Error(ex, "Failed to log in with course url : {0} and token of {1} characters", courseUrl, token.Length);
+                TUI.ShowError("The token or the course url you provided is invalid. Please make sure you entered the right token and course url");
+                RunWithoutConfig();
+                return;
+            }
+            catch (Exception e) when (e.InnerException is InvalidTokenException ex)
+            {
+                Log.Error(ex, "Failed to log in with course url : {0} and token of {1} characters", courseUrl, token.Length);
+                TUI.ShowError("The token or the course url you provided is invalid. Please make sure you entered the right token and course url");
+                RunWithoutConfig();
+                return;
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "Unknown Exception");
+                TUI.ShowError("Unknown Error occured - " + ex.Message);
+                RunWithoutConfig();
+                return;
+            }
+
+            Log.Information("Logged in successfully");
+            Console.WriteLine(TUI.continueGlyph + "Logged in successfully");
+
+            Config config = new Config
+            {
+                AuthenticationToken = token,
+                Browser = selectedBrowser,
+                Quality = selectedQuality,
+                CourseDirectory = courseRootDirectory
+            };
+            File.WriteAllText("./Config.json", config.ToJson());
+            Console.WriteLine(TUI.continueGlyph + "Saved entries to config file");
+            Log.Information("Saved entries to congig file. Intializing Course Extractor");
+            Console.WriteLine(TUI.endGlyph + "Intializing Course Extractor");
+            Course course = ExtractCourse(config);
+            if (course is null)
+            {
+                RunWithoutConfig();
+                return;
+            }
+            Log.Information("Course Extracted. Downloading...");
+            Console.WriteLine();
+            CourseDownloader.DownloadCourse(course, courseRootDirectory);
+        }
+
+        private static Course ExtractCourse(Config config)
+        {
+            Course course = new Course();
+            Extractor.ExtractCourseStructure(out int videosCount);
+            using (pbarExtractor = new ProgressBar(videosCount, "Extracting Course Links - This will take some time", optionPbarExtractor))
+            {
+                Retry.Do(
+                    function: () =>
+                    {
+                        Log.Information("Extracting...");
+                        Extractor.ExtractionProgressChanged += Extractor_ExtractionProgressChanged;
+                        course = Extractor.ExtractCourse(config.Quality);
+                    },
+                    exceptionMessage: "An error occured while extracting the course",
+                    actionOnError: () =>
+                    {
+                        Extractor.CloseTabs();
+                        var progress = pbarExtractor.AsProgress<float>();
+                        progress?.Report(0);
+                        Extractor.ExtractionProgressChanged -= Extractor_ExtractionProgressChanged;
+                    },
+                    actionOnFatal: () =>
+                    {
+                        TUI.ShowError("Failed to extract course. You can find more info in the logs");
+                        Log.Error("Unknown error occured. Running app again");
+                        TUI.ShowError("Unknown error occured");
+                        TUI.ShowError("Restarting...");
+                        Extractor.KillDrivers();
+                        Extractor.ExtractionProgressChanged -= Extractor_ExtractionProgressChanged;
+                        course = null;
+                    }
+                );
+            }
+
+            return course;
         }
 
         private static void Extractor_ExtractionProgressChanged()
@@ -240,6 +250,16 @@ namespace LyndaCoursesDownloader.ConsoleDownloader
         private static void CurrentDomain_ProcessExit(object sender, EventArgs e)
         {
             Extractor.KillDrivers();
+        }
+        private static void AllUnhandledExceptions(object sender, UnhandledExceptionEventArgs e)
+        {
+            var ex = (Exception)e.ExceptionObject;
+            Log.Error(ex, "Unknown error occured. Running app again");
+            Console.WriteLine();
+            TUI.ShowError("Unknown error occured - " + ex.Message);
+            TUI.ShowError("Restarting...");
+            Extractor.ExtractionProgressChanged -= Extractor_ExtractionProgressChanged;
+            RunApp();
         }
     }
 }
