@@ -21,7 +21,7 @@ namespace LyndaCoursesDownloader.GUIDownloader
                 .MinimumLevel.Debug()
                 .WriteTo.File("./logs/log.txt", rollingInterval: RollingInterval.Day, retainedFileCountLimit: 10)
                 .CreateLogger();
-            using (var mgr = new UpdateManager(@"G:\LyndaCoursesDownloaderReleases\LyndaCoursesDownloader_files\Releases"))
+            using (var mgr = new UpdateManager("https://github.com/ahmedayman4a/LyndaCoursesDownloader.UpdateManager"))
             {
                 SquirrelAwareApp.HandleEvents(
                   onInitialInstall: v => mgr.CreateShortcutForThisExe(),

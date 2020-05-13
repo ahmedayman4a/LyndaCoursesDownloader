@@ -72,7 +72,9 @@ namespace LyndaCoursesDownloader.GUIDownloader
         {
             int numberOfErrors = 0;
             StringBuilder sb = new StringBuilder();
-
+            txtCourseDirectory.Text.Trim();
+            txtCourseUrl.Text.Trim();
+            txtToken.Text.Trim();
             if (String.IsNullOrWhiteSpace(txtCourseUrl.Text))
             {
                 sb.Append("• ");
@@ -161,8 +163,6 @@ namespace LyndaCoursesDownloader.GUIDownloader
 
         private Course ExtractCourse()
         {
-            Stopwatch stopwatch = new Stopwatch();
-            stopwatch.Start();
             Course course = new Course();
             UpdateUI(() => lblCurrentOperation.Text = "Logging in");
             Browser browser = GetFromUI<Browser>(() => cmboxBrowser.SelectedIndex);
@@ -212,7 +212,6 @@ namespace LyndaCoursesDownloader.GUIDownloader
                 UC_CourseExtractorStatus.Status = CourseStatus.Starting;
             });
             Extractor.ExtractCourseStructure(out _videosCount);
-            Extractor.ExtractionProgressChanged += Extractor_ExtractionProgressChanged;
             Quality quality = GetFromUI<Quality>(() => cmboxQuality.SelectedIndex);
             UpdateUI(() =>
             {
@@ -223,6 +222,7 @@ namespace LyndaCoursesDownloader.GUIDownloader
             Retry.Do(
                 function: () =>
                 {
+                    Extractor.ExtractionProgressChanged += Extractor_ExtractionProgressChanged;
                     course = Extractor.ExtractCourse(quality);
                 },
                 exceptionMessage: "An error occured while extracting the course",
@@ -260,8 +260,6 @@ namespace LyndaCoursesDownloader.GUIDownloader
                 lblCurrentOperation.Text = "Course Extracted Successfully";
                 UC_CourseExtractorStatus.Status = CourseStatus.Finished;
             });
-            stopwatch.Stop();
-            MessageBox.Show("Elapsed time : " + stopwatch.ElapsedMilliseconds + "ms");
             return course;
         }
         private void UpdateUI(Action updateAction)
@@ -338,12 +336,6 @@ namespace LyndaCoursesDownloader.GUIDownloader
             Extractor.ExtractionProgressChanged -= Extractor_ExtractionProgressChanged;
             EnableControls(true);
         }
-        private void MainForm_Shown(object sender, EventArgs e)
-        {
-
-
-        }
-
         private void CheckForUpdates()
         {
             bool restartApp = false;
@@ -351,7 +343,7 @@ namespace LyndaCoursesDownloader.GUIDownloader
             {
                 try
                 {
-                    using (var githubUpdateManager = UpdateManager.GitHubUpdateManager("https://github.com/ahmedayman4a/LyndaCoursesDownloader.UpdateManager.Prerelease"))
+                    using (var githubUpdateManager = UpdateManager.GitHubUpdateManager("https://github.com/ahmedayman4a/LyndaCoursesDownloader.UpdateManager"))
                     using (var updateManager = await githubUpdateManager)
                     {
                         Log.Information("Checking for updates...");
