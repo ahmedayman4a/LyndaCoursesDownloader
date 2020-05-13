@@ -14,9 +14,9 @@
 Just go to the [releases section](https://github.com/ahmedayman4a/LyndaCoursesDownloader/releases), download the version that suits your platform and make sure you follow the requirements.
 
 ## Requirements
-This program needs geckodriver or chromedriver to be present in the same directory as LyndaCoursesDownloader. The latest version of geckodriver and chromdriver at the time of release is already present which you can download from [here](https://github.com/ahmedayman4a/LyndaCoursesDownloader/releases) so you don't need to do anything if you have the latest version of firefox or Firefox version 60 and up.
+This program needs geckodriver or chromedriver to be present in the same directory as LyndaCoursesDownloader. The latest version of geckodriver and chromedriver at the time of release is already present which you can download from [here](https://github.com/ahmedayman4a/LyndaCoursesDownloader/releases) so you don't need to do anything if you have the latest version of firefox or Firefox version 60 and up.
 
-* If you have Firefox installed , you don't need to do anything as geckodriver v0.26.0 should be supported by most upcooming versions.[More Info](https://firefox-source-docs.mozilla.org/testing/geckodriver/Support.html).
+* If you have Firefox installed , you don't need to do anything as geckodriver v0.26.0 should be supported by most upcoming versions.[More Info](https://firefox-source-docs.mozilla.org/testing/geckodriver/Support.html).
 
 * If you have Chrome installed you will need to download the chromedriver which supports your browser version from [here](https://sites.google.com/a/chromium.org/chromedriver/downloads). This is one of the reasons firefox is recommended. You can check your chrome version by going to "Settings" then click on "About Chrome". Old versions of chrome are not recommended.
 
