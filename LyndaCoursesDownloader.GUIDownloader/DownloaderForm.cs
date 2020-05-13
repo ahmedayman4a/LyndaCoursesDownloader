@@ -31,7 +31,7 @@ namespace LyndaCoursesDownloader.GUIDownloader
             _course = course;
             _courseRootDirectory = courseRootDirectory;
             InitializeComponent();
-            Text = "Downloading " + _course.Name + " course";
+            Text = "Downloading [" + _course.Name + "] Course";
             foreach (var control in flowLayoutPanel.Controls)
             {
                 switch (control)
@@ -62,10 +62,10 @@ namespace LyndaCoursesDownloader.GUIDownloader
                 foreach (var chapter in _course.Chapters)
                 {
                     var chapterDirectory = courseDirectory.CreateSubdirectory($"[{chapter.Id}] {ToSafeFileName(chapter.Name)}");
-                    if (closePending) break;
+                    if (closePending) return;
                     foreach (var video in chapter.Videos)
                     {
-                        if (closePending) break;
+                        if (closePending) return;
                         Retry.Do(() =>
                         {
                             ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls | SecurityProtocolType.Tls11 | SecurityProtocolType.Tls12;
@@ -101,7 +101,7 @@ namespace LyndaCoursesDownloader.GUIDownloader
                         });
                     }
                 }
-                UpdateUI(() => Close());
+                DownloaderStatus = CourseStatus.Finished;
             }
             catch (Exception ex)
             {
@@ -162,12 +162,8 @@ namespace LyndaCoursesDownloader.GUIDownloader
 
         private void backgroundWorker_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
-            if (DownloaderStatus != CourseStatus.Failed)
-            {
-                DownloaderStatus = CourseStatus.Finished;
-            }
-            if (closePending) Close();
             closePending = false;
+            Close();
         }
     }
 }
