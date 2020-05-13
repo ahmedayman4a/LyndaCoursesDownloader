@@ -1,15 +1,14 @@
-﻿using Bumblebee.Setup;
-using LyndaCoursesDownloader.CourseContent;
-using LyndaCoursesDownloader.CourseElements;
-using OpenQA.Selenium;
-using OpenQA.Selenium.Support.UI;
-using Serilog;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Bumblebee.Setup;
+using LyndaCoursesDownloader.CourseContent;
+using LyndaCoursesDownloader.CourseElements;
+using OpenQA.Selenium;
+using OpenQA.Selenium.Support.UI;
 
 namespace LyndaCoursesDownloader.CourseExtractor
 {
@@ -207,16 +206,13 @@ namespace LyndaCoursesDownloader.CourseExtractor
             int windowsLeft = windows.Count;
             foreach (var window in windows)
             {
+                _session.Driver.SwitchTo().Window(window);
                 if (windowsLeft == 1)
                 {
                     return;
                 }
-                else
-                {
-                    _session.Driver.SwitchTo().Window(window);
-                    _session.Driver.Close();
-                    windowsLeft--;
-                }
+                _session.Driver.Close();
+                windowsLeft--;
             }
         }
     }
