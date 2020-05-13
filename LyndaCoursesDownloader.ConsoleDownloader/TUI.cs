@@ -1,4 +1,4 @@
-﻿using LyndaCoursesDownloader.CourseExtractor;
+﻿using LyndaCoursesDownloader.CourseContent;
 using System;
 using System.IO;
 using System.Text.RegularExpressions;
@@ -109,7 +109,7 @@ namespace LyndaCoursesDownloader.ConsoleDownloader
                 Console.WriteLine(continueGlyph + "What is the url of the course?");
                 Console.Write(answerGlyph);
                 string courseUrl = Console.ReadLine().Clean().Replace("?autoplay=true", "");
-                if (Regex.IsMatch(courseUrl, @"^https?:\/\/(www\.)?lynda.com\/"))
+                if (Regex.IsMatch(courseUrl, @"^https?:\/\/(www\.)?lynda\.com\/"))
                 {
                     return courseUrl;
                 }

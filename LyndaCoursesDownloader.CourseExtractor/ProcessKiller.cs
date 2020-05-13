@@ -89,7 +89,9 @@ namespace LyndaCoursesDownloader.CourseExtractor
                 FileName = fileName,
                 Arguments = arguments,
                 RedirectStandardOutput = true,
-                UseShellExecute = false
+                RedirectStandardError = true,
+                UseShellExecute = false,
+                CreateNoWindow = true
             };
 
             var process = Process.Start(startInfo);

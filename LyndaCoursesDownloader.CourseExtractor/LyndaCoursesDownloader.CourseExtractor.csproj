@@ -1,22 +1,25 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netstandard2.1</TargetFramework>
+    <TargetFramework>netstandard2.0</TargetFramework>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <DebugType>full</DebugType>
+    <DebugSymbols>true</DebugSymbols>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="Bumblebee.Automation" Version="2.1.2" />
     <PackageReference Include="Selenium.WebDriver" Version="3.141.0" />
+    <PackageReference Include="Serilog" Version="2.9.0" />
+    <PackageReference Include="Serilog.Sinks.File" Version="4.1.0" />
     <PackageReference Include="System.Text.Encoding.CodePages" Version="4.7.0" />
   </ItemGroup>
 
   <ItemGroup>
-    <Reference Include="LyndaCoursesDownloader.CourseContent">
-      <HintPath>..\LyndaCoursesDownloader.CourseContent\bin\Debug\netstandard2.1\LyndaCoursesDownloader.CourseContent.dll</HintPath>
-    </Reference>
-    <Reference Include="LyndaCoursesDownloader.CourseElements">
-      <HintPath>..\LyndaCoursesDownloader.CourseElements\bin\Debug\netstandard2.1\LyndaCoursesDownloader.CourseElements.dll</HintPath>
-    </Reference>
+    <ProjectReference Include="..\LyndaCoursesDownloader.CourseContent\LyndaCoursesDownloader.CourseContent.csproj" />
+    <ProjectReference Include="..\LyndaCoursesDownloader.CourseElements\LyndaCoursesDownloader.CourseElements.csproj" />
   </ItemGroup>
 
 </Project>

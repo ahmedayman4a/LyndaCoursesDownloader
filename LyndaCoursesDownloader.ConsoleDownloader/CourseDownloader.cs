@@ -1,4 +1,6 @@
 ﻿using LyndaCoursesDownloader.CourseContent;
+using LyndaCoursesDownloader.CourseExtractor;
+using Serilog;
 using ShellProgressBar;
 using System;
 using System.IO;
@@ -60,19 +62,8 @@ namespace LyndaCoursesDownloader.ConsoleDownloader
                         {
                             foreach (var video in chapter.Videos)
                             {
-
                                 currentVideo = video.Name;
-                                ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls | SecurityProtocolType.Tls11 | SecurityProtocolType.Tls12;
-                                using (var downloadClient = new WebClient())
-                                using (pbarVideo = pbarChapter.Spawn(100, $"Downloading Video {video.Id} : {currentVideo}", optionsVideo))
-                                {
-                                    downloadClient.DownloadProgressChanged += DownloadClient_DownloadProgressChanged;
-                                    downloadClient.DownloadFileCompleted += DownloadClient_DownloadFileCompleted;
-                                    string captionName = $"[{ video.Id}] { ToSafeFileName(video.Name)}.srt";
-                                    string videoName = $"[{ video.Id}] { ToSafeFileName(video.Name)}.mp4";
-                                    File.WriteAllText($"{Path.Combine(chapterDirectory.FullName, ToSafeFileName(captionName))}", video.CaptionText);
-                                    downloadClient.DownloadFileTaskAsync(new Uri(video.VideoDownloadUrl), Path.Combine(chapterDirectory.FullName, videoName)).Wait();
-                                }
+                                DownloadVideo(chapterDirectory, pbarChapter, video);
                                 pbarChapter.Tick();
                             }
                             pbarChapter.Message = $"Chapter {chapter.Id} : {chapter.Name} chapter has been downloaded successfully";
@@ -81,6 +72,11 @@ namespace LyndaCoursesDownloader.ConsoleDownloader
                     }
                     pbarCourse.Message = $"{course.Name} course has been downloaded successfully";
                 }
+                Console.WriteLine();
+                Console.ForegroundColor = ConsoleColor.Green;
+                Console.WriteLine("Course downloaded successfully :)");
+                Console.ResetColor();
+                Log.Information("Course downloaded successfully");
             }
             catch (Exception ex)
             {
@@ -89,6 +85,36 @@ namespace LyndaCoursesDownloader.ConsoleDownloader
                 TUI.ShowError("Trying again...");
                 DownloadCourse(course, courseRootDirectory);
             }
+        }
+
+        private static void DownloadVideo(DirectoryInfo chapterDirectory, ChildProgressBar pbarChapter, Video video)
+        {
+            ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls | SecurityProtocolType.Tls11 | SecurityProtocolType.Tls12;
+            using (pbarVideo = pbarChapter.Spawn(100, $"Downloading Video {video.Id} : {currentVideo}", optionsVideo))
+            {
+                Retry.Do(() =>
+                {
+                    using (var downloadClient = new WebClient())
+                    {
+                        downloadClient.DownloadProgressChanged += DownloadClient_DownloadProgressChanged;
+                        downloadClient.DownloadFileCompleted += DownloadClient_DownloadFileCompleted;
+                        string videoName = $"[{ video.Id}] { ToSafeFileName(video.Name)}.mp4";
+                        if (!(video.CaptionText is null))
+                        {
+                            string captionName = $"[{ video.Id}] { ToSafeFileName(video.Name)}.srt";
+                            File.WriteAllText($"{Path.Combine(chapterDirectory.FullName, ToSafeFileName(captionName))}", video.CaptionText);
+                        }
+                        downloadClient.DownloadFileTaskAsync(new Uri(video.VideoDownloadUrl), Path.Combine(chapterDirectory.FullName, videoName)).Wait();
+                    }
+                },
+                exceptionMessage: "Failed to download video with title " + video.Name,
+                actionOnError: () =>
+                {
+                    var progress = pbarVideo.AsProgress<float>();
+                    progress?.Report(0);
+                });
+            }
+
         }
 
         private static void DownloadClient_DownloadFileCompleted(object sender, System.ComponentModel.AsyncCompletedEventArgs e)
@@ -101,7 +127,6 @@ namespace LyndaCoursesDownloader.ConsoleDownloader
         {
             float KbReceived = e.BytesReceived / 1024;
             float TotalKbToReceive = e.TotalBytesToReceive / 1024;
-            //pbarVideo.Message = "Downloading Video : " + currentVideo + "  " + KbReceived + "KB out of " + TotalKbToReceived;
             pbarVideo.Message = String.Format("Downloading Video : {0} {1}KB out of {2}KB", currentVideo, KbReceived, TotalKbToReceive);
             float percentage = KbReceived / TotalKbToReceive;
             var progress = pbarVideo.AsProgress<float>();
