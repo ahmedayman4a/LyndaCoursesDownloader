@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Reflection;
 using System.Windows.Forms;
 using LyndaCoursesDownloader.DownloaderConfig;
+using Microsoft.Win32;
 using Serilog;
 using Squirrel;
 
@@ -24,15 +26,32 @@ namespace LyndaCoursesDownloader.GUIDownloader
             using (var mgr = new UpdateManager("https://github.com/ahmedayman4a/LyndaCoursesDownloader.UpdateManager"))
             {
                 SquirrelAwareApp.HandleEvents(
-                  onInitialInstall: v => mgr.CreateShortcutForThisExe(),
-                  onAppUpdate: v => mgr.CreateShortcutForThisExe(),
+                  onInitialInstall: v => { mgr.CreateShortcutForThisExe(); AddIconToRegistry(); },
+                  onAppUpdate: v => { mgr.CreateShortcutForThisExe(); AddIconToRegistry(); },
                   onAppUninstall: v => mgr.RemoveShortcutForThisExe());
             }
             Application.SetUnhandledExceptionMode(UnhandledExceptionMode.ThrowException);
             Config.Restore();
             Application.Run(new MainForm());
         }
-
+        private static void AddIconToRegistry()
+        {
+            Log.Information("Setting key value for icon in registry");
+            using (RegistryKey baseKey = RegistryKey.OpenBaseKey(RegistryHive.CurrentUser, RegistryView.Registry64))
+            using (RegistryKey myKey = baseKey.CreateSubKey(@"Software\Microsoft\Windows\CurrentVersion\Uninstall\LyndaCoursesDownloader", true))
+            {
+                Log.Information("Current exe path : " + Assembly.GetExecutingAssembly().GetName().CodeBase.Replace("file:///", ""));
+                if (myKey is null)
+                {
+                    Log.Warning("Key not found");
+                }
+                else
+                {
+                    myKey.SetValue("DisplayIcon", Assembly.GetExecutingAssembly().GetName().CodeBase.Replace("file:///", ""), RegistryValueKind.String);
+                    Log.Information("Key value for icon is set successfully");
+                }
+            }
+        }
         private static void AllUnhandledExceptions(object sender, UnhandledExceptionEventArgs e)
         {
             var ex = (Exception)e.ExceptionObject;
