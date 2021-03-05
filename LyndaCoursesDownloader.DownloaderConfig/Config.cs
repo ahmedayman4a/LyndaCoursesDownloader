@@ -4,6 +4,7 @@ using Serilog;
 using System;
 using System.IO;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace LyndaCoursesDownloader.DownloaderConfig
 {
@@ -27,8 +28,6 @@ namespace LyndaCoursesDownloader.DownloaderConfig
         [JsonProperty("CourseDirectory")]
         public DirectoryInfo CourseDirectory { get; set; }
 
-        [JsonProperty("Browser")]
-        public Browser Browser { get; set; }
 
         [JsonProperty("Quality")]
         public Quality Quality { get; set; }
@@ -55,6 +54,18 @@ namespace LyndaCoursesDownloader.DownloaderConfig
                 decryptedToken = "";
             }
             return decryptedToken;
+        }
+
+        public async Task Save()
+        {
+            using (var streamWriter = new StreamWriter("./Config.json", false))
+                await streamWriter.WriteAsync(this.ToJson());
+        }
+
+        public static async Task<Config> Fill()
+        {
+            using (var streamReader = new StreamReader("./Config.json"))
+                return FromJson(await streamReader.ReadToEndAsync());
         }
 
         /// <summary>
@@ -115,7 +126,6 @@ namespace LyndaCoursesDownloader.DownloaderConfig
             DateParseHandling = DateParseHandling.None,
             Converters =
             {
-                BrowserConverter.Singleton,
                 QualityConverter.Singleton,
                 DirectoryInfoConverter.Singleton
             },

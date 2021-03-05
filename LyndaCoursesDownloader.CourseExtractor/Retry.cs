@@ -8,7 +8,7 @@ namespace LyndaCoursesDownloader.CourseExtractor
 {
     public class Retry
     {
-        public static T Do<T>(Func<T> function, string exceptionMessage, Action actionOnError = null, Action actionOnFatal = null ,int retries = 5)
+        public static T Do<T>(Func<T> function, string exceptionMessage, Action actionOnError = null, Action actionOnFatal = null, int retries = 5)
         {
             int totalRetries = retries;
             do
@@ -33,7 +33,7 @@ namespace LyndaCoursesDownloader.CourseExtractor
 
 
             Log.Fatal("Error occured {retries} times without being resolved", totalRetries);
-            if(actionOnFatal is null)
+            if (actionOnFatal is null)
             {
                 throw new Exception("A fatal error occured in the program. Check the logs for more info");
             }
@@ -45,7 +45,7 @@ namespace LyndaCoursesDownloader.CourseExtractor
             }
         }
 
-        public static async Task<T> Do<T>(Func<Task<T>> function, string exceptionMessage, Action actionOnError = null, Action actionOnFatal = null , int retries = 5)
+        public static async Task<T> Do<T>(Func<Task<T>> function, string exceptionMessage, Action actionOnError = null, Action actionOnFatal = null, int retries = 5)
         {
             int totalRetries = retries;
             do
@@ -56,7 +56,7 @@ namespace LyndaCoursesDownloader.CourseExtractor
 
                     await Task.WhenAny(resultTask).ConfigureAwait(false);
 
-                    if (resultTask.Status == TaskStatus.RanToCompletion)
+                    if (resultTask.Status == TaskStatus.RanToCompletion || resultTask.Status == TaskStatus.Canceled)
                         return resultTask.Result;
                 }
                 catch (Exception ex)
@@ -93,7 +93,7 @@ namespace LyndaCoursesDownloader.CourseExtractor
             {
                 function();
                 return null;
-            }), exceptionMessage, actionOnError,actionOnFatal, retries);
+            }), exceptionMessage, actionOnError, actionOnFatal, retries);
         }
 
         public static async Task Do(Func<Task> function, string exceptionMessage, Action actionOnError = null, Action actionOnFatal = null, int retries = 5)
@@ -107,7 +107,7 @@ namespace LyndaCoursesDownloader.CourseExtractor
 
                     await Task.WhenAny(resultTask).ConfigureAwait(false);
 
-                    if (resultTask.Status == TaskStatus.RanToCompletion)
+                    if (resultTask.Status == TaskStatus.RanToCompletion || resultTask.Status == TaskStatus.Canceled)
                         return;
                     else
                         throw resultTask.Exception;

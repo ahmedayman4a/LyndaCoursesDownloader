@@ -1,34 +1,23 @@
-﻿namespace LyndaCoursesDownloader.CourseContent
+﻿using Newtonsoft.Json;
+
+namespace LyndaCoursesDownloader.CourseContent
 {
-    public class Video : ICourse
+    public class Video
     {
+
+        [JsonProperty("ID")]
         public int Id { get; set; }
-        public string Name { get; set; }
-        public string VideoUrl { get; set; }
-        public string VideoDownloadUrl { get; set; }
-        public string CaptionText { get; set; }
-        public Chapter Chapter { get; set; }
 
-        public CurrentStatus CurrentVideoStatus { get; set; } = CurrentStatus.Ready;
+        [JsonProperty("Title")]
+        public string Title { get; set; }
 
-        public override bool Equals(object obj)
-        {
-            var video = obj as Video;
-            if (video == null)
-            {
-                return false;
-            }
-            return this.Id == video.Id && this.Chapter.Equals(video.Chapter);
-        }
+        public string ApiUrl { get; set; }
 
-        public override int GetHashCode()
-        {
-            int hash = 19;
-            hash = hash * 31 + this.Id;
-            hash = hash * 31 + this.Chapter.GetHashCode();
-            return hash;
-        }
+        public string DownloadUrl { get; set; }
 
+        public string SubtitlesUrl { get; set; }
+
+        public string Subtitles { get; set; }
     }
 
 }

@@ -1,219 +1,195 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
+using System.Net.Http;
+using System.Runtime.InteropServices;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
-using Bumblebee.Setup;
 using LyndaCoursesDownloader.CourseContent;
-using LyndaCoursesDownloader.CourseElements;
-using OpenQA.Selenium;
-using OpenQA.Selenium.Support.UI;
+using Microsoft.CSharp;
+using Newtonsoft.Json;
 
 namespace LyndaCoursesDownloader.CourseExtractor
 {
-    public static class Extractor
+    public class Extractor
     {
-        public delegate void ExtractionProgressChangedEventHandler();
-        public static event ExtractionProgressChangedEventHandler ExtractionProgressChanged;
-        private static Session _session;
-        private static CoursePage _coursePage;
-        private static List<Video> _allVideos;
-        private static Course _course;
-        private static object _statusLock = new object();
-        private static Task _initializationTask;
+        //62dc0343-88fe-4f00-aa70-5771a84a13bd,7bb812d70efe55023b423d0d445262d4,AaBET0MilOE8myV9Gu+d97z8j0ptSlYJHJ1KAT4kfK+2MLNamLs+qv43qT/r+NjX38eELUIdKPOx4A49iMC5nVtmA1ib0zX3F2F4IkVd3vd9PTX6h9QFjd3aTeFvr863Zreo1M7L5JqO+meXxE05lA==
+        public delegate void LinksExtractionEventHandler();
+        public event LinksExtractionEventHandler LinksExtractionFinished;
+        private readonly string _token;
+        private readonly Quality _quality;
+        private readonly Curl _curl;
+        private readonly bool _downloadExerciseFiles;
+        private string _courseUrl;
+        private int _courseId;
 
-        public static Task InitializeDriver(Browser selectedBrowser)
+        public Extractor(string courseUrl, Quality quality, string token, bool downloadExerciseFiles)
         {
-            _initializationTask = new Task(() =>
-            {
-                //KillDrivers();
-                switch (selectedBrowser)
-                {
-                    case Browser.Firefox:
-                        _session = new Session<CustomFirefox>();
-                        break;
-                    case Browser.Chrome:
-                        _session = new Session<CustomChrome>();
-                        break;
-                }
-                _session.NavigateTo<AboutPage>("https://www.lynda.com/aboutus/"); //used about page for quicker loading
-                _session.Driver.Manage().Cookies.DeleteAllCookies();
-            });
-            _initializationTask.Start();
-            return _initializationTask;
+            _courseUrl = courseUrl;
+            _quality = quality;
+            _token = token;
+            _downloadExerciseFiles = downloadExerciseFiles;
+            _curl = new Curl(_token);
         }
 
-        public static Task Login(string token, string courseUrl)
+        public static string ExtractToken(Browser browser)
         {
-            return _initializationTask.ContinueWith((t) =>
+            var cookieExtractor = new CookiesExtractor("www.lynda.com");
+            List<Cookie> cookies;
+            switch (browser)
             {
-                _session.Driver.Manage().Cookies.AddCookie(new Cookie("token", token, "www.lynda.com", "/", new DateTime(2222, 1, 1)));
-
-                _coursePage = _session.NavigateTo<CoursePage>(courseUrl);
-                if (_session.Driver.PageSource.Contains("submenu-account"))
-                {
-                    _session.Driver.Manage().Cookies.DeleteAllCookies();
-                    _session.Driver.Manage().Cookies.AddCookie(new Cookie("token", token, "www.lynda.com", "/", new DateTime(2222, 1, 1)));
-                    _session.NavigateTo<CoursePage>(courseUrl);
-                }
-                else
-                {
-                    throw new InvalidTokenException();
-                }
-            });
-        }
-
-        public static void ExtractCourseStructure(out int numberOfVideos)
-        {
-            _course = ExtractCourseStructure();
-            _allVideos = _course.Chapters.SelectMany(ch => ch.Videos).ToList();
-            numberOfVideos = _allVideos.Count;
-        }
-        private static Course ExtractCourseStructure()
-        {
-            Course course = new Course()
-            {
-                Name = _coursePage.CourseName,
-                Chapters = new List<Chapter>()
-            };
-            int i = 1;
-            foreach (var chapterBlock in _coursePage.ChapterBlocks)
-            {
-                chapterBlock.ChapterId = i;
-                course.Chapters.Add(chapterBlock);
-                i++;
+                case Browser.Chrome:
+                    cookies = cookieExtractor.ReadChromeCookies();
+                    break;
+                case Browser.Firefox:
+                    cookies = cookieExtractor.ReadFirefoxCookies();
+                    break;
+                case Browser.Edge:
+                    cookies = cookieExtractor.ReadEdgeCookies();
+                    break;
+                default:
+                    throw new ArgumentException("browser");
             }
+            if (cookies.Where(c => c.Name == "token").Count() != 0)
+            {
+                return cookies.Where(c => c.Name == "token").First().Value;
+            }
+            return null;
+        }
 
+        public async Task<Course> GetCourse()
+        {
+            var course = Course.FromJson(await _curl.CurlRequest("https://www.lynda.com/ajax/player?courseId=" + _courseId + "&type=course"));
+            if (_downloadExerciseFiles)
+            {
+                dynamic tagsHtml = JsonConvert.DeserializeObject(await _curl.CurlRequest("https://www.lynda.com/ajax/course/" + course.Id + "/0/getupselltabs")); //Returns the html Tag for exercise files and offline download tabs
+                string exerciseFilesTag = tagsHtml["exercisetab"]; //Get the exercisetab Html tag as a string to extract the exercise file api link
+                Regex pattern = new Regex(@"<a[^>]+?\/ajax\/(?<downloadUrl>(?:[^\/]+\/){2,6}\d+)[^>]*>");
+                if (pattern.IsMatch(exerciseFilesTag))
+                {
+                    string exerciseFilesApiUrl = "https://www.lynda.com/ajax/" + pattern.Match(exerciseFilesTag).Groups["downloadUrl"].Value; //extract the exercise file api link
+                    course.ExerciseFilesDownloadUrl = await _curl.GetCurlRedirectUrl(exerciseFilesApiUrl); //Get the actual download link by getting the redirect location
+                }
+            }
+            await FillDownloadLinks(course);
             return course;
         }
-
-        public static Course ExtractCourse(Quality selectedQuality)
+        public async Task FillDownloadLinks(Course course)
         {
-            bool _isFirstVideo = true;
-            WebDriverWait wait = new WebDriverWait(_session.Driver, TimeSpan.FromSeconds(30));
-            Video video = _allVideos.GetAvailableVideo(_statusLock);
-            _session.NavigateTo<CoursePage>(video.VideoUrl);
-            Video nextVideo = _allVideos.GetAvailableVideo(_statusLock);
-            while (!(video is null))
+            List<string> linkArgumentsLines = new List<string>(), subtitleArgumentsLines = new List<string>();
+            foreach (var chapter in course.Chapters)
             {
-                if (nextVideo is null)
+                foreach (var video in chapter.Videos)
                 {
-                    if (_isFirstVideo)
+                    string linkArgument = String.Format("-X GET \"{0}\" -b token=\"{1}\" -: ", video.ApiUrl, _token);
+                    string subtitleArgument = String.Format("-X GET \"{0}\" -b token=\"{1}\" -: ", video.SubtitlesUrl, _token);
+                    if (linkArgumentsLines.Count() == 0)
                     {
-                        _isFirstVideo = false;
-                        ExtractVideo(video, wait, selectedQuality);
+                        linkArgumentsLines.Add(linkArgument);
+                        subtitleArgumentsLines.Add(subtitleArgument);
+                        continue;
+                    }
+
+                    string lastArgumentsLine = linkArgumentsLines.Last();
+                    if (lastArgumentsLine.Length > 20000)
+                    {
+                        linkArgumentsLines.Add(linkArgument);
                     }
                     else
                     {
-                        ExtractVideo(video, wait);
+                        lastArgumentsLine += linkArgument;
+                        linkArgumentsLines[linkArgumentsLines.Count() - 1] = lastArgumentsLine;
                     }
-                    break;
-                }
-                else
-                {
-                    if (_isFirstVideo)
+                    string lastSubtitlesLine = subtitleArgumentsLines.Last();
+                    if (lastSubtitlesLine.Length > 20000)
                     {
-                        _isFirstVideo = false;
-                        ExtractVideo(video, wait, selectedQuality, nextVideo);
+                        subtitleArgumentsLines.Add(subtitleArgument);
                     }
                     else
                     {
-                        ExtractVideo(video, wait, null, nextVideo);
+                        lastSubtitlesLine += subtitleArgument;
+                        subtitleArgumentsLines[subtitleArgumentsLines.Count() - 1] = lastSubtitlesLine;
                     }
-                    video = nextVideo;
-                    nextVideo = _allVideos.GetAvailableVideo(_statusLock);
                 }
-
+            }
+            string linksResult = "";
+            foreach (var linkArgumentsLine in linkArgumentsLines)
+            {
+                linksResult += await _curl.CurlCustomRequest(linkArgumentsLine.Remove(linkArgumentsLine.Length - 4));
             }
 
-            return _course;
-        }
-
-        private static void ExtractVideo(Video video, WebDriverWait wait, Quality? selectedQuality = null, Video nextVideo = null)
-        {
-            _session.Driver.SwitchTo().Window(_session.Driver.WindowHandles.First());
-            if (!(nextVideo is null))
+            if (linksResult.Contains("ERROR 429: Too Many"))
             {
-                _session.ExecuteJavaScript($"window.open('{nextVideo.VideoUrl}','_blank');");
-                _session.Driver.SwitchTo().Window(_session.Driver.WindowHandles.First());
+                throw new TooManyRequestsException();
             }
-            Retry.Do(() =>
+            LinksExtractionFinished();
+            string subtitlesResult = "";
+            foreach (var subtitleArgumentsLine in subtitleArgumentsLines)
             {
-                var videoBlock = _session.CurrentPage<CoursePage>().VideoBlock;
-                wait.Until(ExpectedConditions.ElementToBeClickable(By.Id("banner-play")));
-                videoBlock.VideoId = video.Id;
-                videoBlock.WatchVideoButton.Click();
+                subtitlesResult += await _curl.CurlCustomRequest(subtitleArgumentsLine.Remove(subtitleArgumentsLine.Length - 4)) + Environment.NewLine;
+            }
 
-                if (!(selectedQuality is null))
+            var linksJson = Regex.Split(linksResult.Trim(), "(?<=[}]])").Where(s => !string.IsNullOrWhiteSpace(s)).ToList();
+            var allSubtitles = Regex.Split(subtitlesResult.Trim(), @"^1" + Environment.NewLine + @"|{ Status=""Not|nscript not found\"" }1" + Environment.NewLine, RegexOptions.Multiline).Where(s => !string.IsNullOrWhiteSpace(s)).ToList();
+            int i = 0;
+            foreach (var chapter in course.Chapters)
+            {
+                foreach (var video in chapter.Videos)
                 {
-                    wait.Until(ExpectedConditions.ElementToBeClickable(By.Id("player-settings")));
-                    videoBlock.QualitySettings.Click();
-                    switch (selectedQuality)
+                    dynamic links = JsonConvert.DeserializeObject(linksJson[i]);
+                    switch (_quality)
                     {
-                        case Quality.Low:
-                            videoBlock.Quality360.Click();
+                        case Quality.High:
+                            video.DownloadUrl = links[0].urls["720"];
                             break;
                         case Quality.Medium:
-                            videoBlock.Quality540.Click();
+                            video.DownloadUrl = links[0].urls["540"];
                             break;
-                        case Quality.High:
-                            videoBlock.Quality720.Click();
+                        case Quality.Low:
+                            video.DownloadUrl = links[0].urls["360"];
                             break;
                     }
+                    if (allSubtitles[i].Contains("Found\", Message=\"Tra"))
+                    {
+                        video.Subtitles = null;
+                    }
+                    else
+                    {
+                        video.Subtitles = "1" + Environment.NewLine + allSubtitles[i].Trim();
+                    }
+                    i++;
                 }
-                video.VideoDownloadUrl = videoBlock.VideoDownloadUrl;
-                var captionPage = _session.NavigateTo<CaptionsPage>(videoBlock.CaptionElement.GetAttribute("src"));
-                video.CaptionText = captionPage.CaptionText;
-                _session.Driver.Close();
-                ExtractionProgressChanged();
-                Monitor.Enter(_statusLock);
-                video.CurrentVideoStatus = CurrentStatus.Finished;
-                Monitor.Exit(_statusLock);
-            },
-            exceptionMessage: "An error occured while extracting video with title " + video.Name,
-            actionOnError: () =>
-            {
-                _session.NavigateTo<CoursePage>(video.VideoUrl);
-            });
+            }
+
         }
-        public static void KillDrivers()
+
+        public async Task<bool> HasValidToken()
         {
-            if (!(_session is null))
+            string aboutusPage = await _curl.CurlRequest("https://www.lynda.com/aboutus/");
+            if (aboutusPage.Contains("id=\"submenu-account\""))
             {
-                _session.Driver.Quit();
-                _session = null;
-                _coursePage = null;
-                _allVideos = null;
-                _course = null;
-                _initializationTask = null;
-                _statusLock = new object();
+                return true;
             }
-            Process[] geckodriverProcesses = Process.GetProcessesByName("geckodriver");
-            foreach (var geckodriverProcess in geckodriverProcesses)
-            {
-                geckodriverProcess.KillTree();
-            }
-            Process[] chromedriverProcesses = Process.GetProcessesByName("chromedriver");
-            foreach (var chromedriverProcess in chromedriverProcesses)
-            {
-                chromedriverProcess.KillTree();
-            }
+            return false;
         }
-        public static void CloseTabs()
+        public bool HasValidUrl()
         {
-            var windows = _session.Driver.WindowHandles;
-            int windowsLeft = windows.Count;
-            foreach (var window in windows)
+            if (!_courseUrl.Contains("https://") || !_courseUrl.Contains("http://"))
             {
-                _session.Driver.SwitchTo().Window(window);
-                if (windowsLeft == 1)
-                {
-                    return;
-                }
-                _session.Driver.Close();
-                windowsLeft--;
+                _courseUrl = "https://" + _courseUrl;
             }
+            Regex patternCourseUrl = new Regex(@"https?:\/\/(?:www\.)?lynda\.com\/(?:[^\/]+\/){2,3}(?<courseId>\d+)(-2\.html|\/\d+)");
+
+            if (patternCourseUrl.IsMatch(_courseUrl))
+            {
+                _courseId = int.Parse(patternCourseUrl.Match(_courseUrl).Groups["courseId"].Value);
+                return true;
+            }
+            return false;
         }
+
     }
 }
