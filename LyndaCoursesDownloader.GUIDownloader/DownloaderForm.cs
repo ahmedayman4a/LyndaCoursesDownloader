@@ -18,20 +18,23 @@ namespace LyndaCoursesDownloader.GUIDownloader
 {
     public partial class DownloaderForm : Form
     {
-        private Course _course;
+        private List<Course> _courses;
         private DirectoryInfo _courseRootDirectory;
         private int _videosCount;
         private int _currentVideoIndex = 1;
-        private bool closePending = false;
+        private CancellationTokenSource _cancellationTokenSource = new CancellationTokenSource();
+        private CancellationToken _cancellationToken;
+        private Downloader _downloader = new Downloader();
 
         public CourseStatus DownloaderStatus { get; set; } = CourseStatus.Running;
 
-        public DownloaderForm(Course course, DirectoryInfo courseRootDirectory,Font font)
+        public DownloaderForm(List<Course> courses, DirectoryInfo courseRootDirectory, Font font)
         {
-            _course = course;
+            _courses = courses;
             _courseRootDirectory = courseRootDirectory;
+            _cancellationToken = _cancellationTokenSource.Token;
             InitializeComponent();
-            Text = "Downloading [" + _course.Name + "] Course";
+            Text = "Downloading Courses";
             foreach (var control in flowLayoutPanel.Controls)
             {
                 switch (control)
@@ -43,127 +46,135 @@ namespace LyndaCoursesDownloader.GUIDownloader
             }
         }
 
-        private void DownloaderForm_Load(object sender, EventArgs e)
+        private async void DownloaderForm_Load(object sender, EventArgs e)
         {
-            backgroundWorker.RunWorkerAsync();
+            for (int i = 0; i < _courses.Count; i++)
+            {
+                _currentVideoIndex = 1;
+                var course = _courses[i];
+                lblTotal.Text = $"Downloading Course : {course.Title} [{i + 1}/{_courses.Count}]";
+                if (_cancellationToken.IsCancellationRequested) return;
+                await DownloadCourse(course);
+                progressBarTotal.Value = (i + 1) * 100 / _courses.Count;
+            }
+            DownloaderStatus = CourseStatus.Finished;
+            Close();
+        }
+        private async Task DownloadExerciseFiles(Course course, DirectoryInfo courseDirectory)
+        {
+            ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls | SecurityProtocolType.Tls11 | SecurityProtocolType.Tls12;
+
+            if (_cancellationToken.IsCancellationRequested) return;
+            lblDownloadingVideo.Visible = false;
+            lblVideo.Text = "Downloading exercise files";
+            using (var fileStream = File.Create(Path.Combine(courseDirectory.FullName, ToSafeFileName(course.Title) + ".zip")))
+            {
+                await _downloader.DownloadFileAsync(new Uri(course.ExerciseFilesDownloadUrl), fileStream, _cancellationToken, DownloadProgressChanged);
+            }
+
+            if (_currentVideoIndex <= _videosCount)
+            {
+                UpdateUI(() => progressBarCourse.Value = _currentVideoIndex * 100 / _videosCount);
+            }
+
+            lblDownloadingVideo.Visible = true;
         }
 
-        private void backgroundWorker_DoWork(object sender, DoWorkEventArgs e)
-        {
-            DownloadCourse();
-        }
-
-        private void DownloadCourse()
+        private async Task DownloadCourse(Course course)
         {
             try
             {
-                _videosCount = _course.Chapters.SelectMany(ch => ch.Videos).Count();
-                var courseDirectory = _courseRootDirectory.CreateSubdirectory(ToSafeFileName(_course.Name));
-                foreach (var chapter in _course.Chapters)
+                _videosCount = course.Chapters.SelectMany(ch => ch.Videos).Count();
+                var courseDirectory = _courseRootDirectory.CreateSubdirectory(ToSafeFileName(course.Title));
+                int i = 1;
+                foreach (var chapter in course.Chapters)
                 {
-                    var chapterDirectory = courseDirectory.CreateSubdirectory($"[{chapter.Id}] {ToSafeFileName(chapter.Name)}");
-                    if (closePending) return;
+                    var chapterDirectory = courseDirectory.CreateSubdirectory($"[{i}] {ToSafeFileName(chapter.Title)}");
+                    int j = 1;
                     foreach (var video in chapter.Videos)
                     {
-                        if (closePending) return;
-                        Retry.Do(() =>
+                        if (_cancellationToken.IsCancellationRequested) return;
+                        await Retry.Do(async () =>
                         {
                             ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls | SecurityProtocolType.Tls11 | SecurityProtocolType.Tls12;
-                            using (var downloadClient = new WebClient())
-                            {
-                                downloadClient.DownloadProgressChanged += DownloadClient_DownloadProgressChanged;
-                                downloadClient.DownloadFileCompleted += DownloadClient_DownloadFileCompleted;
-                                UpdateUI(() =>
-                                {
-                                    lblVideo.Text = video.Name + " - [Chapter " + chapter.Id + "]";
-                                    lblTotal.Text = _currentVideoIndex++ + "/" + _videosCount;
-                                });
+                            lblVideo.Text = video.Title + " - [Chapter " + i + "]";
+                            lblCourse.Text = _currentVideoIndex++ + "/" + _videosCount;
 
-                                string videoName = $"[{ video.Id}] { ToSafeFileName(video.Name)}.mp4";
-                                if (!(video.CaptionText is null))
-                                {
-                                    string captionName = $"[{ video.Id}] { ToSafeFileName(video.Name)}.srt";
-                                    File.WriteAllText($"{Path.Combine(chapterDirectory.FullName, ToSafeFileName(captionName))}", video.CaptionText);
-                                }
-                                if (closePending) return;
-                                downloadClient.DownloadFileTaskAsync(new Uri(video.VideoDownloadUrl), Path.Combine(chapterDirectory.FullName, videoName)).Wait();
+                            string videoName = $"[{j}] { ToSafeFileName(video.Title)}.mp4";
+                            if (!(video.Subtitles is null))
+                            {
+                                string captionName = $"[{j}] { ToSafeFileName(video.Title)}.srt";
+                                await SaveSubtitles(Path.Combine(chapterDirectory.FullName, ToSafeFileName(captionName)), video.Subtitles);
+                            }
+                            using (var fileStream = File.Create(Path.Combine(chapterDirectory.FullName, videoName)))
+                            {
+                                await _downloader.DownloadFileAsync(new Uri(video.DownloadUrl), fileStream, _cancellationToken, DownloadProgressChanged);
+                            }
+                            if (_currentVideoIndex <= _videosCount)
+                            {
+                                UpdateUI(() => progressBarCourse.Value = _currentVideoIndex * 100 / _videosCount);
                             }
                         },
-                        exceptionMessage: "Failed to download video with title " + video.Name,
+                        exceptionMessage: "Failed to download video with title " + video.Title,
                         actionOnError: () =>
                         {
                             UpdateUI(() => progressBarVideo.Value = 0);
+                            _currentVideoIndex--;
                         },
                         actionOnFatal: () =>
                         {
                             DownloaderStatus = CourseStatus.Failed;
-                            UpdateUI(() => Close());
+                            Close();
                         });
+                        j++;
                     }
+                    i++;
                 }
-                DownloaderStatus = CourseStatus.Finished;
+                if (course.ExerciseFilesDownloadUrl != null)
+                {
+                    await DownloadExerciseFiles(course, courseDirectory);
+                }
             }
             catch (Exception ex)
             {
                 DownloaderStatus = CourseStatus.Failed;
-                UpdateUI(() => Close());
+                Close();
                 throw ex;
             }
         }
 
-        private void DownloadClient_DownloadFileCompleted(object sender, AsyncCompletedEventArgs e)
+        private void DownloadProgressChanged(long downloadedBytes, long totalBytes)
         {
-            if (_currentVideoIndex <= _videosCount)
-            {
-                UpdateUI(() => progressBarTotal.Value = _currentVideoIndex * 100 / _videosCount);
-            }
-        }
-        private void UpdateUI(Action updateAction)
-        {
-            if (!closePending)
-                Invoke(updateAction);
-        }
-
-        private void DownloadClient_DownloadProgressChanged(object sender, DownloadProgressChangedEventArgs e)
-        {
+            int progressPercentage = (int)((double)downloadedBytes / (double)totalBytes * 100);
             UpdateUI(() =>
             {
-                progressBarVideo.Value = e.ProgressPercentage;
-                lblPercentage.Text = e.ProgressPercentage + "%";
+                progressBarVideo.Value = progressPercentage;
+                lblPercentage.Text = progressPercentage + "%";
             });
+        }
+
+        private void UpdateUI(Action updateAction)
+        {
+            if (!_cancellationToken.IsCancellationRequested)
+                Invoke(updateAction);
         }
 
         private static string ToSafeFileName(string fileName) => string.Concat(fileName.Split(Path.GetInvalidFileNameChars()));
 
-
-        protected override void OnFormClosing(FormClosingEventArgs e)
+        private async Task SaveSubtitles(string filePath, string subtitles)
         {
-            if (backgroundWorker.IsBusy)
-            {
-                DownloaderStatus = CourseStatus.Failed;
-                UpdateUI(() =>
-                {
-                    lblDownloadingVideo.Text = "Closing...";
-                    Text = "Closing";
-                    lblPercentage.Visible = false;
-                    lblTotal.Visible = false;
-                    lblVideo.Visible = false;
-                    progressBarTotal.Visible = false;
-                    progressBarVideo.Visible = false;
-                });
-                closePending = true;
-                backgroundWorker.CancelAsync();
-                e.Cancel = true;
-                Enabled = false;
-                return;
-            }
-            base.OnFormClosing(e);
+            using (var streamWriter = new StreamWriter(filePath, false))
+                await streamWriter.WriteAsync(subtitles);
         }
 
-        private void backgroundWorker_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
+        private void DownloaderForm_FormClosing(object sender, FormClosingEventArgs e)
         {
-            closePending = false;
-            Close();
+            if (DownloaderStatus != CourseStatus.Finished)
+            {
+                DownloaderStatus = CourseStatus.Failed;
+                _cancellationTokenSource.Cancel();
+                _downloader.Dispose();
+            }
         }
     }
 }

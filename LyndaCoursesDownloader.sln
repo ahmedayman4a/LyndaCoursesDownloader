@@ -5,15 +5,9 @@ VisualStudioVersion = 16.0.29521.150
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LyndaCoursesDownloader.CourseContent", "LyndaCoursesDownloader.CourseContent\LyndaCoursesDownloader.CourseContent.csproj", "{FDD9E97F-D691-41B4-BE25-158965F9E657}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LyndaCoursesDownloader.CourseElements", "LyndaCoursesDownloader.CourseElements\LyndaCoursesDownloader.CourseElements.csproj", "{6022209C-A2B4-4CCA-B764-3F89E2A87B70}"
-	ProjectSection(ProjectDependencies) = postProject
-		{FDD9E97F-D691-41B4-BE25-158965F9E657} = {FDD9E97F-D691-41B4-BE25-158965F9E657}
-	EndProjectSection
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LyndaCoursesDownloader.CourseExtractor", "LyndaCoursesDownloader.CourseExtractor\LyndaCoursesDownloader.CourseExtractor.csproj", "{2474A7E5-7D88-4D78-8A82-CC28C2FBBA9B}"
 	ProjectSection(ProjectDependencies) = postProject
 		{FDD9E97F-D691-41B4-BE25-158965F9E657} = {FDD9E97F-D691-41B4-BE25-158965F9E657}
-		{6022209C-A2B4-4CCA-B764-3F89E2A87B70} = {6022209C-A2B4-4CCA-B764-3F89E2A87B70}
 	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LyndaCoursesDownloader.ConsoleDownloader", "LyndaCoursesDownloader.ConsoleDownloader\LyndaCoursesDownloader.ConsoleDownloader.csproj", "{2FC2CED6-8D4F-48CB-B075-2CB6A204B9AC}"
@@ -25,7 +19,6 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LyndaCoursesDownloader.GUIDownloader", "LyndaCoursesDownloader.GUIDownloader\LyndaCoursesDownloader.GUIDownloader.csproj", "{1199BC74-0CF8-4DCD-A38F-FE8AAF4EBE63}"
 	ProjectSection(ProjectDependencies) = postProject
 		{FDD9E97F-D691-41B4-BE25-158965F9E657} = {FDD9E97F-D691-41B4-BE25-158965F9E657}
-		{6022209C-A2B4-4CCA-B764-3F89E2A87B70} = {6022209C-A2B4-4CCA-B764-3F89E2A87B70}
 		{07E1D9AA-D707-42F4-B661-CAC07C573A8F} = {07E1D9AA-D707-42F4-B661-CAC07C573A8F}
 		{2474A7E5-7D88-4D78-8A82-CC28C2FBBA9B} = {2474A7E5-7D88-4D78-8A82-CC28C2FBBA9B}
 	EndProjectSection
@@ -51,14 +44,6 @@ Global
 		{FDD9E97F-D691-41B4-BE25-158965F9E657}.Release|Any CPU.Build.0 = Release|Any CPU
 		{FDD9E97F-D691-41B4-BE25-158965F9E657}.Release|x64.ActiveCfg = Release|Any CPU
 		{FDD9E97F-D691-41B4-BE25-158965F9E657}.Release|x64.Build.0 = Release|Any CPU
-		{6022209C-A2B4-4CCA-B764-3F89E2A87B70}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{6022209C-A2B4-4CCA-B764-3F89E2A87B70}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{6022209C-A2B4-4CCA-B764-3F89E2A87B70}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{6022209C-A2B4-4CCA-B764-3F89E2A87B70}.Debug|x64.Build.0 = Debug|Any CPU
-		{6022209C-A2B4-4CCA-B764-3F89E2A87B70}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{6022209C-A2B4-4CCA-B764-3F89E2A87B70}.Release|Any CPU.Build.0 = Release|Any CPU
-		{6022209C-A2B4-4CCA-B764-3F89E2A87B70}.Release|x64.ActiveCfg = Release|Any CPU
-		{6022209C-A2B4-4CCA-B764-3F89E2A87B70}.Release|x64.Build.0 = Release|Any CPU
 		{2474A7E5-7D88-4D78-8A82-CC28C2FBBA9B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{2474A7E5-7D88-4D78-8A82-CC28C2FBBA9B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2474A7E5-7D88-4D78-8A82-CC28C2FBBA9B}.Debug|x64.ActiveCfg = Debug|Any CPU

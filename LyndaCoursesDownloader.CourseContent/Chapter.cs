@@ -1,23 +1,14 @@
-﻿using System.Collections.Generic;
+﻿using Newtonsoft.Json;
+using System.Collections.Generic;
 
 namespace LyndaCoursesDownloader.CourseContent
 {
-    public class Chapter : ICourse
+    public class Chapter
     {
-        public int Id { get; set; }
-        public string Name { get; set; }
-        public IList<Video> Videos { get; set; }
+        [JsonProperty("Title")]
+        public string Title { get; set; }
 
-        public override bool Equals(object obj)
-        {
-            var chapter = obj as Chapter;
-            if (chapter == null)
-            {
-                return false;
-            }
-            return this.Id == chapter.Id;
-        }
-
-        public override int GetHashCode() => 19 * 31 + this.Id;
+        [JsonProperty("Videos")]
+        public List<Video> Videos { get; set; }
     }
 }
